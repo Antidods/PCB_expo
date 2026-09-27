@@ -136,13 +136,11 @@ public sealed class ExposureRasterService(
             var center = coordinates.BlankToPixel(point, blankOnLcd, raster);
             var radiusX = Math.Max(1, CoordinateTransformService.MmToPx(blank.AlignmentPointDiameterMm / 2, raster.PixelsPerMmX));
             var radiusY = Math.Max(1, CoordinateTransformService.MmToPx(blank.AlignmentPointDiameterMm / 2, raster.PixelsPerMmY));
-            using var ellipse = CvInvoke.GetStructuringElement(MorphShapes.Ellipse,
-                new Size(radiusX * 2 + 1, radiusY * 2 + 1), new Point(radiusX, radiusY));
-            var rect = new Rectangle(center.X - radiusX, center.Y - radiusY, ellipse.Width, ellipse.Height);
+            var rect = new Rectangle(center.X - radiusX, center.Y - radiusY, radiusX * 2 + 1, radiusY * 2 + 1);
             if (!new Rectangle(0, 0, output.Width, output.Height).Contains(rect))
                 throw new InvalidOperationException("Точка центровки выходит за пределы LCD.");
-            using var target = new Mat(output, rect);
-            CvInvoke.Max(target, ellipse, target);
+            CvInvoke.Ellipse(output, new Point(center.X, center.Y), new Size(radiusX, radiusY),
+                0, 0, 360, new MCvScalar(255), -1, LineType.EightConnected);
         }
     }
 
@@ -159,4 +157,5 @@ public sealed class ExposureRasterService(
         CvInvoke.Rectangle(output, new Rectangle(squareA.X, squareB.Y, squareB.X - squareA.X, squareA.Y - squareB.Y), new MCvScalar(255), 1, LineType.EightConnected);
     }
 }
+
 

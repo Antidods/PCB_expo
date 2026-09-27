@@ -15,7 +15,7 @@ public sealed record PrinterInfo(
     float TemplateExposureSeconds,
     byte TemplateLightPwm);
 
-public sealed class Cxdlpv4TemplateService
+public sealed partial class Cxdlpv4TemplateService
 {
     public PrinterInfo ReadInfo(string templatePath)
     {
@@ -44,3 +44,4 @@ public sealed class Cxdlpv4TemplateService
             file.LightPWM);
     }
 }
+
