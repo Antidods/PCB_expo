@@ -19,6 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\PcbExpo.App\PcbExpo.App.csproj" />
     <ProjectReference Include="..\..\src\PcbExpo.Core\PcbExpo.Core.csproj" />
   </ItemGroup>
 
