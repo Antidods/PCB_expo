@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PcbExpo.App/PcbExpo.App.csproj" />
+    <Project Path="src/PcbExpo.Core/PcbExpo.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PcbExpo.Tests/PcbExpo.Tests.csproj" />
+  </Folder>
+</Solution>
