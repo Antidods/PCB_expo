@@ -1,4 +1,7 @@
+using System.Drawing;
+using System.Security.Cryptography;
 using Emgu.CV;
+using Emgu.CV.CvEnum;
 using UVtools.Core.FileFormats;
 using UVtools.Core.Layers;
 
@@ -19,6 +22,12 @@ public sealed partial class Cxdlpv4TemplateService
             throw new InvalidOperationException("Нельзя перезаписывать исходный шаблон.");
         if (File.Exists(outputPath))
             throw new IOException("Выходной файл уже существует; выберите другое имя.");
+        var templateHash = SHA256.HashData(File.ReadAllBytes(templatePath));
+        using var originalMetadata = FileFormat.Open(templatePath, FileFormat.FileDecodeType.Partial)
+            as CrealityCXDLPv4File ?? throw new InvalidDataException("Не удалось прочитать метаданные шаблона.");
+        var sourceVolume = originalMetadata.PrintParametersSettings.VolumeMl;
+        var sourceWeight = originalMetadata.PrintParametersSettings.WeightG;
+        var sourceCost = originalMetadata.PrintParametersSettings.CostDollars;
         using var source = FileFormat.Open(templatePath) as CrealityCXDLPv4File
             ?? throw new InvalidDataException("Шаблон не является CXDLPV4.");
         if (mask.Width != source.ResolutionX || mask.Height != source.ResolutionY)
@@ -35,20 +44,55 @@ public sealed partial class Cxdlpv4TemplateService
         source.BottomExposureTime = (float)exposureSeconds;
         source.ExposureTime = (float)exposureSeconds;
         source.Layers[0].ExposureTime = (float)exposureSeconds;
+        // Финальный слой бинарный, поэтому уровень AA формата равен 1.
+        source.HeaderSettings.AntiAliasLevel = 1;
+        source.SlicerInfoSettings.AntiAliasLevel = 1;
         if (lightPwm is not null)
         {
             source.BottomLightPWM = lightPwm.Value;
             source.LightPWM = lightPwm.Value;
             source.Layers[0].LightPWM = lightPwm.Value;
         }
+        using var thumbnailGray = new Mat();
+        using var thumbnailBgr = new Mat();
+        CvInvoke.Resize(mask, thumbnailGray, new Size(300, 170), interpolation: Inter.Nearest);
+        CvInvoke.CvtColor(thumbnailGray, thumbnailBgr, ColorConversion.Gray2Bgr);
+        source.SetThumbnails(thumbnailBgr);
+        source.PrintParametersSettings.VolumeMl = sourceVolume;
+        source.PrintParametersSettings.WeightG = sourceWeight;
+        source.PrintParametersSettings.CostDollars = sourceCost;
         source.SaveAs(outputPath);
+        // Полный decode/encode UVtools пересчитывает поля материала. Возвращаем исходные
+        // значения частичным сохранением только метаданных уже созданного файла.
+        using (var metadata = FileFormat.Open(outputPath, FileFormat.FileDecodeType.Partial)
+               as CrealityCXDLPv4File ?? throw new InvalidDataException("Не удалось проверить метаданные экспорта."))
+        {
+            metadata.PrintParametersSettings.VolumeMl = sourceVolume;
+            metadata.PrintParametersSettings.WeightG = sourceWeight;
+            metadata.PrintParametersSettings.CostDollars = sourceCost;
+            metadata.SaveAs(outputPath);
+        }
+        if (!templateHash.SequenceEqual(SHA256.HashData(File.ReadAllBytes(templatePath))))
+            throw new InvalidDataException("Исходный шаблон изменился во время экспорта.");
+
+        using (var metadata = FileFormat.Open(outputPath, FileFormat.FileDecodeType.Partial)
+               as CrealityCXDLPv4File ?? throw new InvalidDataException("Не удалось повторно прочитать метаданные."))
+        {
+            if (metadata.PrintParametersSettings.VolumeMl != sourceVolume ||
+                metadata.PrintParametersSettings.WeightG != sourceWeight ||
+                metadata.PrintParametersSettings.CostDollars != sourceCost)
+                throw new InvalidDataException("Поля материала шаблона изменились при экспорте.");
+        }
 
         using var decoded = FileFormat.Open(outputPath) as CrealityCXDLPv4File
             ?? throw new InvalidDataException("Экспортированный CXDLPV4 не открывается через UVtools.");
         if (decoded.ResolutionX != sourceResolutionX || decoded.ResolutionY != sourceResolutionY ||
             Math.Abs(decoded.DisplayWidth - sourceWidth) > 0.001 ||
             Math.Abs(decoded.DisplayHeight - sourceHeight) > 0.001 || decoded.LayerCount != 1 ||
-            Math.Abs(decoded.BottomExposureTime - exposureSeconds) > 0.02)
+            Math.Abs(decoded.BottomExposureTime - exposureSeconds) > 0.02 ||
+            Math.Abs(decoded.Layers[0].ExposureTime - exposureSeconds) > 0.02 ||
+            decoded.HeaderSettings.AntiAliasLevel != 1 ||
+            (lightPwm is not null && (decoded.LightPWM != lightPwm || decoded.BottomLightPWM != lightPwm)))
             throw new InvalidDataException("Round-trip обнаружил изменение параметров шаблона или экспозиции.");
         using var decodedMat = decoded.Layers[0].LayerMat;
         using var diff = new Mat();

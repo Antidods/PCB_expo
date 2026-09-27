@@ -12,15 +12,18 @@ public enum GerberLayerKind
     BoardOutline, Drill, Other
 }
 
-public sealed record GerberLayer(string Path, string Name, GerberLayerKind Kind);
+public sealed record GerberLayer(string Path, string Name, GerberLayerKind Kind, string RelativePath)
+{
+    public override string ToString() => Name;
+}
 
 public sealed class GerberPackage : IDisposable
 {
     public string SourcePath { get; init; } = "";
     public string ProjectName { get; init; } = "";
     public List<GerberLayer> Layers { get; init; } = [];
-    public RectangleF? BoardBoundsMm { get; init; }
-    public bool OutlineFallback { get; init; }
+    public RectangleF? BoardBoundsMm { get; set; }
+    public bool OutlineFallback { get; set; }
     public string? TemporaryDirectory { get; init; }
 
     public GerberLayer? GetLayer(GerberLayerKind kind) => Layers.SingleOrDefault(x => x.Kind == kind);
@@ -35,7 +38,8 @@ public sealed class GerberPackage : IDisposable
 public sealed class GerberImportService
 {
     private static readonly HashSet<string> Extensions = new(StringComparer.OrdinalIgnoreCase)
-    { ".gbr", ".gtl", ".gbl", ".gts", ".gbs", ".gko", ".gm1", ".drl", ".xln" };
+    { ".gbr", ".gtl", ".gbl", ".gts", ".gbs", ".gko", ".gm1", ".gml",
+      ".gto", ".gbo", ".gtp", ".gbp", ".gdl", ".drl", ".xln" };
 
     public GerberPackage Import(string path)
     {
@@ -55,15 +59,14 @@ public sealed class GerberImportService
         {
             var layers = Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories)
                 .Where(x => Extensions.Contains(Path.GetExtension(x)))
-                .Select(x => new GerberLayer(x, Path.GetFileName(x), Classify(x)))
+                .Select(x => new GerberLayer(x, Path.GetFileName(x), Classify(x), Path.GetRelativePath(folder, x)))
                 .OrderBy(x => x.Name, StringComparer.OrdinalIgnoreCase).ToList();
             if (layers.Count == 0) throw new InvalidDataException("В наборе нет Gerber/Excellon файлов.");
 
             var outline = layers.Where(x => x.Kind == GerberLayerKind.BoardOutline).ToArray();
-            if (outline.Length > 1) throw new InvalidDataException("Найдено несколько outline; выберите слой вручную.");
             RectangleF? bounds = outline.Length == 1 ? MeasureBounds(outline[0].Path) : null;
             var fallback = false;
-            if (bounds is null)
+            if (bounds is null && outline.Length == 0)
             {
                 var artwork = layers.Where(x => x.Kind is GerberLayerKind.TopCopper or GerberLayerKind.BottomCopper)
                     .Select(x => MeasureBounds(x.Path)).Where(x => x is not null).Select(x => x!.Value).ToArray();

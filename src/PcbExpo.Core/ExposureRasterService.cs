@@ -88,9 +88,9 @@ public sealed class ExposureRasterService(
                 return new MaskResult(output, blankOnLcd, []);
             }
             if (boardBounds is null)
-                throw new InvalidOperationException("Для экспонирования PCB нужен Board Outline.");
+                throw new InvalidOperationException("Для экспозиции платы нужен контур платы.");
             if (!project.LayerPaths.TryGetValue(project.CurrentLayerKind, out var path))
-                throw new InvalidOperationException($"Не назначен Gerber для {project.Mode}.");
+                throw new InvalidOperationException("Для выбранного режима экспозиции не назначен слой Gerber.");
 
             var boards = panelization.Layout(boardBounds.Value.Width, boardBounds.Value.Height,
                 project.Blank, project.PcbPositionMm, project.Panelization);

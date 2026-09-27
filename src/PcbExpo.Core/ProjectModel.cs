@@ -55,7 +55,9 @@ public sealed class ProjectModel
     public string TemplatePath { get; set; } = "";
     public string GerberSourcePath { get; set; } = "";
     public string Name { get; set; } = "PCB";
+    [JsonIgnore]
     public Dictionary<GerberLayerKind, string> LayerPaths { get; set; } = [];
+    public Dictionary<GerberLayerKind, string> LayerNames { get; set; } = [];
     public BlankProfile Blank { get; set; } = new();
     public PointMm PcbPositionMm { get; set; } = new(20, 15);
     public PanelizationSettings Panelization { get; set; } = new();

@@ -27,7 +27,7 @@ public sealed class BlankLayoutService
             return custom;
         }
         if (blank.CustomAlignmentPoints is not null)
-            throw new InvalidOperationException("Custom alignment coordinates должны содержать ровно 5 точек.");
+            throw new InvalidOperationException("Пользовательский набор должен содержать ровно 5 точек центровки.");
         if (blank.AlignmentPointDiameterMm <= 0 ||
             blank.AlignmentInsetXmm <= 0 || blank.AlignmentInsetYmm <= 0 ||
             blank.AlignmentInsetXmm >= blank.WidthMm / 2 || blank.AlignmentInsetYmm >= blank.HeightMm / 2)
@@ -99,8 +99,8 @@ public sealed class PanelizationService(BlankLayoutService layout)
         if (board.X < settings.MarginLeftMm || board.Y < settings.MarginBottomMm ||
             board.Right > blank.WidthMm - settings.MarginRightMm ||
             board.Top > blank.HeightMm - settings.MarginTopMm)
-            throw new InvalidOperationException("PCB выходит за допустимую область заготовки.");
+            throw new InvalidOperationException("Плата выходит за допустимую область заготовки.");
         if (layout.IntersectsHoleExclusion(board, blank))
-            throw new InvalidOperationException("PCB пересекает запретную область механического отверстия.");
+            throw new InvalidOperationException("Плата пересекает запретную область механического отверстия.");
     }
 }
