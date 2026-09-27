@@ -1,0 +1,20 @@
+# Пользовательские исходники и экспорт
+/150x100.cxdlpv4
+/Gerber_Cube_PCB_Cube_2026-09-23/
+*.cxdlpv4
+*.pcbexpo.json
+
+# .NET / IDE
+bin/
+obj/
+.vs/
+.idea/
+.vscode/
+TestResults/
+artifacts/
+
+# Локальные настройки, журналы и временные файлы
+*.log
+*.tmp
+*.bak
+.local/
