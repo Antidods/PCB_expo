@@ -37,8 +37,12 @@ public sealed partial class Cxdlpv4TemplateService
         var sourceResolutionX = source.ResolutionX;
         var sourceResolutionY = source.ResolutionY;
 
+        // Зеркалируем готовый растр по X для просмотра результата со стороны экспонированной платы.
+        // Исходная маска остаётся в ориентации preview; Bottom и пользовательские преобразования уже применены.
+        using var exportMask = new Mat();
+        CvInvoke.Flip(mask, exportMask, FlipType.Horizontal);
         // Один слой исключает повторную экспозицию 40 слоёв исходного печатного задания.
-        source.Layers = [new Layer(mask, source)];
+        source.Layers = [new Layer(exportMask, source)];
         source.BottomLayerCount = 1;
         source.TransitionLayerCount = 0;
         source.BottomExposureTime = (float)exposureSeconds;
@@ -55,7 +59,7 @@ public sealed partial class Cxdlpv4TemplateService
         }
         using var thumbnailGray = new Mat();
         using var thumbnailBgr = new Mat();
-        CvInvoke.Resize(mask, thumbnailGray, new Size(300, 170), interpolation: Inter.Nearest);
+        CvInvoke.Resize(exportMask, thumbnailGray, new Size(300, 170), interpolation: Inter.Nearest);
         CvInvoke.CvtColor(thumbnailGray, thumbnailBgr, ColorConversion.Gray2Bgr);
         source.SetThumbnails(thumbnailBgr);
         source.PrintParametersSettings.VolumeMl = sourceVolume;
@@ -96,7 +100,7 @@ public sealed partial class Cxdlpv4TemplateService
             throw new InvalidDataException("Round-trip обнаружил изменение параметров шаблона или экспозиции.");
         using var decodedMat = decoded.Layers[0].LayerMat;
         using var diff = new Mat();
-        CvInvoke.AbsDiff(mask, decodedMat, diff);
+        CvInvoke.AbsDiff(exportMask, decodedMat, diff);
         var differentPixels = CvInvoke.CountNonZero(diff);
         if (differentPixels != 0)
             throw new InvalidDataException($"Round-trip: изображение отличается в {differentPixels} пикселях.");

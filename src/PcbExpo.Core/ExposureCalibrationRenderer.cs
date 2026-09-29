@@ -28,20 +28,21 @@ public sealed class ExposureCalibrationRenderer
             tile.CopyTo(destination);
         }
         var time = project.CurrentExposureSeconds.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture);
-        Label($"T={time}s  W/G=mm  H/V", new PointMm(pattern.Bounds.X + 2, pattern.Bounds.Top - 3), 1.7);
+        Label($"T={time}s  W/G=mm  H/V", new PointMm(pattern.Bounds.X + 2, pattern.Bounds.Top - 3), 2.6);
         foreach (var cell in pattern.Cells.Where(c => c.Row == 0))
         {
             var compensation = cell.CompensationMm.ToString("+0.###;-0.###;0", System.Globalization.CultureInfo.InvariantCulture);
-            Label($"C{cell.Column + 1:00} {compensation}", new PointMm(cell.Bounds.X, pattern.Bounds.Top - 7), 1.0);
+            Label($"C{cell.Column + 1:00}", new PointMm(cell.Bounds.X, pattern.Bounds.Top - 7), 1.8);
+            Label(compensation, new PointMm(cell.Bounds.X, pattern.Bounds.Top - 10), 1.8);
         }
         for (var row = 0; row < pattern.Rows.Count; row++)
         {
             var cell = pattern.Cells.First(c => c.Row == row);
             var values = pattern.Rows[row];
-            Label($"R{row + 1:00}", new PointMm(pattern.Bounds.X + 1, cell.Bounds.Top - 1.5), 1.3);
+            Label($"R{row + 1:00}", new PointMm(pattern.Bounds.X + 1, cell.Bounds.Top - 0.7), 2.0);
             Label(values.Width.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "/" +
                 values.Gap.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture),
-                new PointMm(pattern.Bounds.X + 1, cell.Bounds.Top - 3.5), 1.3);
+                new PointMm(pattern.Bounds.X + 1, cell.Bounds.Top - 3.3), 2.0);
         }
 
         PixelPoint Pixel(PointMm point) => _coordinates.BlankToPixel(point, blankOnLcd, raster);
@@ -77,7 +78,7 @@ public sealed class ExposureCalibrationRenderer
             // Render text isotropically, then correct X/Y scale to keep physical letter proportions.
             var height = Math.Max(8, heightMm * raster.PixelsPerMmY);
             var scale = height / 22;
-            var thickness = Math.Max(1, (int)Math.Round(raster.PixelsPerMmY * 0.10));
+            var thickness = Math.Max(1, (int)Math.Round(raster.PixelsPerMmY * 0.15));
             var baseLine = 0;
             var size = CvInvoke.GetTextSize(text, FontFace.HersheySimplex, scale, thickness, ref baseLine);
             using var label = new Mat(size.Height + baseLine + 4, size.Width + 4, DepthType.Cv8U, 1);
