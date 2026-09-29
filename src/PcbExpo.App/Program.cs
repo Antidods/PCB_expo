@@ -7,14 +7,24 @@ namespace PcbExpo.App;
 internal static class Program
 {
     [STAThread]
-    public static void Main(string[] args)
+    public static int Main(string[] args)
     {
-        if (args.Length > 0 && args[0] == "--inspect")
+        if (args.Length > 0 && args[0] is "--inspect" or "--check-runtime")
         {
-            DiagnosticCli.Run(args.Skip(1).ToArray());
-            return;
+            try
+            {
+                Console.OutputEncoding = System.Text.Encoding.UTF8;
+                if (args[0] == "--check-runtime") DiagnosticCli.CheckRuntime();
+                else DiagnosticCli.Run(args.Skip(1).ToArray());
+                return 0;
+            }
+            catch (Exception error)
+            {
+                Console.Error.WriteLine(error);
+                return 1;
+            }
         }
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        return BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
     public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<PcbExpoApplication>()

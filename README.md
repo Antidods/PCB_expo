@@ -22,13 +22,51 @@ dotnet run --project src/PcbExpo.App/PcbExpo.App.csproj
 dotnet test PcbExpo.slnx
 ```
 
-Приложение ожидает `150x100.cxdlpv4` в текущей директории или позволяет выбрать его кнопкой **Загрузить шаблон**. Пример EasyEDA загружается через **Открыть папку Gerber**. Папка или ZIP остаются без изменений. Для диагностики без UI:
+Приложение ищет `150x100.cxdlpv4` сначала в текущей директории, затем рядом с exe; другой файл можно выбрать кнопкой **Загрузить шаблон**. Пример EasyEDA загружается через **Открыть папку Gerber**. Папка или ZIP остаются без изменений. Для диагностики без UI:
 
 ```powershell
 dotnet run --project src/PcbExpo.App/PcbExpo.App.csproj -- --inspect 150x100.cxdlpv4 Gerber_Cube_PCB_Cube_2026-09-23 --all
 ```
 
 Эта команда создаёт уменьшенные диагностические маски в `.local/source-check/`; исходные Gerber и шаблон не меняет.
+
+## Автономный exe для Windows x64
+
+Из корня репозитория, в Windows PowerShell 5.1 или PowerShell 7:
+
+```powershell
+./scripts/build-exe.ps1
+```
+
+Скрипт выбирает .NET 10 SDK из `DOTNET_ROOT`, стандартного каталога x64 или `PATH`, запускает все тесты в Release, публикует приложение по профилю `Windows-x64`, проверяет загрузку OpenCV и PNG-кодека командой `--check-runtime` и создаёт ZIP. При ошибке любого этапа сборка останавливается. Установки дополнительных SDK скрипт не выполняет. `global.json` разрешает стабильные версии .NET 10 SDK, начиная с 10.0.100.
+
+Если SDK установлен отдельно:
+
+```powershell
+./scripts/build-exe.ps1 -DotnetPath 'D:/dev/tmp/pcbexpo-dotnet10/dotnet.exe'
+```
+
+Для включения локального `150x100.cxdlpv4` в пакет:
+
+```powershell
+./scripts/build-exe.ps1 -DotnetPath 'D:/dev/tmp/pcbexpo-dotnet10/dotnet.exe' -IncludeTemplate
+```
+
+Каждый запуск создаёт новый каталог `artifacts/PcbExpo-win-x64-<дата-время>-<id>/`. В `app/` находится **PcbExpo.App.exe** и README, рядом создаются ZIP, `sha256.json` и журналы проверки в `checks/`. Предыдущие сборки не удаляются. Шаблон копируется только при `-IncludeTemplate`; Gerber, проекты, пользовательские профили и журналы приложения в пакет не входят. Каталог `artifacts/` исключён из Git.
+
+Exe содержит .NET Runtime и библиотеки приложения, поэтому на целевом компьютере не нужны .NET SDK и отдельно установленный .NET Runtime. Окно приложения открывается без консоли. Шаблон остаётся внешним файлом: его можно положить рядом с exe или выбрать в интерфейсе. Нативные DLL при первом запуске распаковываются в `%TEMP%/.net/`; trimming отключён для сохранения совместимости UVtools/Avalonia и сериализации. Механизм использует [single-file deployment .NET](https://learn.microsoft.com/en-us/dotnet/core/deploying/single-file/overview).
+
+Проверка нативных библиотек не заменяет проверку интерфейса, реального принтера и CAM. Для диагностики готового GUI-exe с ожиданием завершения и сохранением вывода:
+
+```powershell
+Start-Process -FilePath '<полный путь>/PcbExpo.App.exe' -ArgumentList '--inspect' -WorkingDirectory '<каталог с шаблоном>' -Wait -RedirectStandardOutput './inspect.txt' -RedirectStandardError './inspect-errors.txt'
+```
+
+`--inspect` и `--check-runtime` возвращают код 0 при успехе и 1 при ошибке. Для ручной публикации без проверки и упаковки скриптом:
+
+```powershell
+dotnet publish src/PcbExpo.App/PcbExpo.App.csproj -p:PublishProfile=Windows-x64 -o artifacts/manual/app
+```
 
 ## Шаблон и координаты
 

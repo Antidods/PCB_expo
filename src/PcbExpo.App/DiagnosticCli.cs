@@ -5,9 +5,20 @@ namespace PcbExpo.App;
 
 internal static class DiagnosticCli
 {
+    public static void CheckRuntime()
+    {
+        // Проверяем загрузку OpenCV и PNG-кодека из опубликованного exe без исходных файлов.
+        using var mask = new Mat(4, 4, Emgu.CV.CvEnum.DepthType.Cv8U, 1);
+        mask.SetTo(new Emgu.CV.Structure.MCvScalar(255));
+        var png = CvInvoke.Imencode(".png", mask);
+        if (CvInvoke.CountNonZero(mask) != 16 || png.Length == 0)
+            throw new InvalidOperationException("Проверка нативных библиотек не пройдена.");
+        Console.WriteLine($"Runtime OK: .NET {Environment.Version}; OpenCV; PNG ({png.Length} bytes)");
+    }
+
     public static void Run(string[] args)
     {
-        var template = args.Length > 0 ? args[0] : Path.Combine(Environment.CurrentDirectory, "150x100.cxdlpv4");
+        var template = args.Length > 0 ? args[0] : ApplicationPaths.DefaultTemplate;
         var info = new Cxdlpv4TemplateService().ReadInfo(template);
         Console.WriteLine($"{info.Format}: {info.ResolutionX} × {info.ResolutionY} px");
         Console.WriteLine($"LCD: {info.DisplayWidthMm} × {info.DisplayHeightMm} mm");

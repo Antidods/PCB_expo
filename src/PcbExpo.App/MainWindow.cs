@@ -262,7 +262,7 @@ public sealed class MainWindow : Window
         };
         Closed += (_, _) => { _preview.ClearPreview(); _package?.Dispose(); };
         _project.Exposure = _exposureProfiles.Load();
-        _project.TemplatePath = Path.Combine(Environment.CurrentDirectory, "150x100.cxdlpv4");
+        _project.TemplatePath = ApplicationPaths.DefaultTemplate;
         if (File.Exists(_project.TemplatePath)) LoadTemplate(_project.TemplatePath);
         RefreshProfileNames();
         SyncModeFields();
