@@ -31,6 +31,7 @@ public sealed class MainWindow : Window
     private readonly ComboBox _mode = new();
     private readonly ComboBox _layer = new();
     private readonly ComboBox _outline = new();
+    private readonly ComboBox _drill = new();
     private readonly ComboBox _placement = new();
     private readonly ComboBox _profile = new();
     private readonly TextBlock _calibrationHint = new()
@@ -109,11 +110,29 @@ public sealed class MainWindow : Window
             Text = "Матрица зигзагов: строки — толщина/зазор, столбцы — компенсация. Каждая проба времени на свежем образце. Для оценки тонких линий увеличьте preview.",
             TextWrapping = TextWrapping.Wrap
         });
-        _processCalibrationPanel.Children.Add(Button("Параметры теста и результат", async () => await ConfigureProcessCalibration()));
+        _processCalibrationPanel.Children.Add(Button("Настроить калибровку", async () => await ConfigureProcessCalibration()));
         editor.Children.Add(_processCalibrationPanel);
         editor.Children.Add(_layer);
         editor.Children.Add(new TextBlock { Text = "Контур платы (при необходимости выберите вручную)" });
         editor.Children.Add(_outline);
+        editor.Children.Add(new TextBlock { Text = "Сверловка для просмотра и CNC" });
+        editor.Children.Add(_drill);
+        _drill.SelectionChanged += (_, _) =>
+        {
+            if (_syncing || _package is null || _drill.SelectedItem is not DisplayChoice<string> choice) return;
+            if (choice.Value.Length == 0)
+            {
+                _project.LayerPaths.Remove(GerberLayerKind.Drill);
+                _project.LayerNames.Remove(GerberLayerKind.Drill);
+            }
+            else
+            {
+                var selected = _package.Layers.Single(l => l.Path == choice.Value);
+                _project.LayerPaths[GerberLayerKind.Drill] = selected.Path;
+                _project.LayerNames[GerberLayerKind.Drill] = selected.RelativePath;
+            }
+        };
+        editor.Children.Add(Button("Сверловка и раскладка для CNC", async () => await ExportDxf(true)));
         _outline.SelectionChanged += (_, _) =>
         {
             if (_syncing || _package is null || _outline.SelectedItem is not DisplayChoice<GerberLayer> choice) return;
@@ -222,9 +241,15 @@ public sealed class MainWindow : Window
         Section(right, "Экспорт");
         right.Children.Add(Button("Точки центровки", () => SelectMode(ExposureMode.Registration)));
         right.Children.Add(Button("Калибровка", () => SelectMode(ExposureMode.Calibration)));
-        right.Children.Add(Button("Время и компенсация", () => SelectMode(ExposureMode.ExposureCalibration)));
+        var processCalibrationButton = Button(UiText.Exposure(ExposureMode.ExposureCalibration),
+            () => SelectMode(ExposureMode.ExposureCalibration));
+        processCalibrationButton.Content = new TextBlock
+        {
+            Text = UiText.Exposure(ExposureMode.ExposureCalibration), TextWrapping = TextWrapping.Wrap
+        };
+        right.Children.Add(processCalibrationButton);
         right.Children.Add(Button("Экспортировать CXDLPV4", async () => await Export()));
-        right.Children.Add(Button("Экспорт серии времени", async () => await ExportCalibrationSeries()));
+        right.Children.Add(Button("Экспортировать пробы с разным временем", async () => await ExportCalibrationSeries()));
         right.Children.Add(Button("Экспорт контуров в DXF", async () => await ExportDxf()));
         Section(right, "Состояние и предупреждения");
         right.Children.Add(_status);
@@ -272,7 +297,7 @@ public sealed class MainWindow : Window
 
     private static Button Button(string label, Action action)
     {
-        var button = new Button { Content = label, Margin = new Thickness(0, 2) };
+        var button = new Button { Content = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap }, Margin = new Thickness(0, 2) };
         button.Click += (_, _) => action();
         return button;
     }
@@ -365,6 +390,11 @@ public sealed class MainWindow : Window
         if (_package is not null && _project.LayerPaths.TryGetValue(_project.CurrentLayerKind, out var path))
             _layer.SelectedItem = _layer.ItemsSource?.Cast<DisplayChoice<GerberLayer>>()
                 .FirstOrDefault(x => x.Value.Path == path);
+        var drillLayers = _package?.Layers.Where(l => l.Kind == GerberLayerKind.Drill).ToArray() ?? [];
+        _drill.ItemsSource = new[] { new DisplayChoice<string>("", $"Все файлы сверловки ({drillLayers.Length})") }
+            .Concat(drillLayers.Select(l => new DisplayChoice<string>(l.Path, l.RelativePath))).ToArray();
+        var drillPath = _project.LayerPaths.GetValueOrDefault(GerberLayerKind.Drill, "");
+        _drill.SelectedItem = _drill.ItemsSource.Cast<DisplayChoice<string>>().FirstOrDefault(c => c.Value == drillPath);
         _syncing = false;
         UpdateSummary();
     }
@@ -658,8 +688,9 @@ public sealed class MainWindow : Window
         finally { _exportingCalibration = false; ((Control)Content!).IsEnabled = wasEnabled; }
     }
 
-    private async Task ExportDxf()
+    private async Task ExportDxf(bool cncFirst = false)
     {
+        if (cncFirst && _package is null) { ShowError(new InvalidOperationException("Сначала импортируйте Gerber и сверловку .drl/.xln.")); return; }
         var contours = new ContourService();
         var sources = new List<DxfSource>
         {
@@ -687,10 +718,32 @@ public sealed class MainWindow : Window
                     return contours.FromMask(mask.Image, raster, new PointMm(-mask.BlankOnLcd.X, -mask.BlankOnLcd.Y));
                 }));
         if (_package is not null)
+        {
+            var blankBounds = new RectMm(0, 0, _project.Blank.WidthMm, _project.Blank.HeightMm);
+            var side = _project.IsBottom ? "Bottom" : "Top";
+            var drillSelection = _project.LayerPaths.TryGetValue(GerberLayerKind.Drill, out var selectedDrill)
+                ? Path.GetFileName(selectedDrill) : "все файлы сверловки";
+            var cncDescription = $"Вся раскладка плат, сторона {side}; {drillSelection}. Начало координат — левый нижний угол заготовки, X вправо, Y вверх, мм. Учитываются размещение копий, Bottom и пользовательские зеркалирования текущего режима платы. Оптическое зеркалирование CXDLPV4, инверсия и компенсация экспозиции не применяются. Контуры — осевые линии Gerber; отверстия — окружности исходного диаметра, прямые пазы — замкнутые контуры с дугами. При режиме калибровки используется сторона Top без пользовательских зеркалирований. Траектории инструмента задаются в CAM.";
+            sources.Add(new("CNC: контуры плат и сверловка всей раскладки", "cnc_layout",
+                cncDescription, () => new CncLayoutService().Build(_project, _package), blankBounds));
+            sources.Add(new("CNC: только сверловка всей раскладки", "cnc_drills",
+                cncDescription, () => new CncLayoutService().Build(_project, _package, includeOutline: false), blankBounds));
+            sources.Add(new("CNC: только контуры плат всей раскладки", "cnc_outlines",
+                cncDescription, () => new CncLayoutService().Build(_project, _package, includeDrills: false), blankBounds));
+            foreach (var drillLayer in _package.Layers.Where(l => l.Kind == GerberLayerKind.Drill))
+                sources.Add(new($"Сверловка: {drillLayer.RelativePath} (исходные координаты)", SafeName(Path.GetFileNameWithoutExtension(drillLayer.Name)),
+                    "Отверстия и прямые пазы одного Excellon без размещения на заготовке. Единицы преобразуются в мм, диаметры сохраняются. Для обработки размещённых копий выберите источник CNC.",
+                    () => new ExcellonDrillService().Read(drillLayer.Path)));
             foreach (var layer in _package.Layers.Where(l => l.Kind != GerberLayerKind.Drill))
                 sources.Add(new($"Gerber: {layer.RelativePath}", SafeName(Path.GetFileNameWithoutExtension(layer.Name)),
                     "Внешние и внутренние границы рисунка слоя, включая толщину линий и апертуры. Координаты исходного Gerber; размещение и преобразования экспозиции не применяются. Контуры получены из растра с шагом 0,01 мм.",
                     () => contours.Gerber(layer.Path)));
+        }
+        if (cncFirst)
+        {
+            var first = sources.Single(s => s.FileStem == "cnc_layout");
+            sources.Remove(first); sources.Insert(0, first);
+        }
         var protectedPaths = (_package?.Layers.Select(l => l.Path) ?? [])
             .Concat([_project.TemplatePath, _project.GerberSourcePath]);
         var dialog = new DxfExportWindow(_project.Name, sources, protectedPaths)
