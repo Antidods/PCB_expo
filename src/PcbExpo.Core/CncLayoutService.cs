@@ -32,8 +32,7 @@ public sealed class CncLayoutService
         }
         if (original.Count == 0) throw new InvalidOperationException("Нет геометрии для CNC.");
         ValidateBounds(original, bounds);
-        var boards = new PanelizationService(new BlankLayoutService()).Layout(bounds.Width, bounds.Height,
-            project.Blank, project.PcbPositionMm, project.Panelization);
+        var boards = new PanelizationService(new BlankLayoutService()).LayoutPhysical(project, bounds.Width, bounds.Height);
         var boardMode = project.Mode is ExposureMode.TopCopper or ExposureMode.BottomCopper or
             ExposureMode.TopSolderMask or ExposureMode.BottomSolderMask;
         var transform = boardMode && project.Transformations.TryGetValue(project.Mode, out var settings)
@@ -53,10 +52,9 @@ public sealed class CncLayoutService
         PointMm Map(PointMm point, RectMm board)
         {
             var x = point.X - bounds.X; var y = point.Y - bounds.Y;
-            if (transform.MirrorX) x = bounds.Width - x;
+            if (transform.MirrorX ^ project.IsBottom) x = bounds.Width - x;
             if (transform.MirrorY) y = bounds.Height - y;
-            var placed = new PointMm(board.X + x, board.Y + y);
-            return project.IsBottom ? new CoordinateTransformService().FlipBlankAroundVerticalAxis(placed, project.Blank) : placed;
+            return new PointMm(board.X + x, board.Y + y);
         }
     }
 

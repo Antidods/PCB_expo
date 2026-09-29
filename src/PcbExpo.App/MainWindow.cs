@@ -595,7 +595,7 @@ public sealed class MainWindow : Window
     {
         var path = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
-            Title = "Сохранить проект PCB Expo", SuggestedFileName = $"{SafeName(_project.Name)}.pcbexpo.json",
+            Title = "Сохранить проект PCB Expo", SuggestedFileName = $"{UiText.SafeFileName(_project.Name)}.pcbexpo.json",
             FileTypeChoices = [new FilePickerFileType("PCB Expo") { Patterns = ["*.pcbexpo.json"] }]
         });
         if (path is null) return;
@@ -617,7 +617,7 @@ public sealed class MainWindow : Window
         }
         if (!await ConfirmExport()) return;
         var blankName = $"{_project.Blank.WidthMm:0.#}x{_project.Blank.HeightMm:0.#}";
-        var filename = $"{SafeName(_project.Name)}_{_project.Mode}_{blankName}.cxdlpv4";
+        var filename = $"{UiText.SafeFileName(_project.Name)}_{_project.Mode}_{blankName}.cxdlpv4";
         var path = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
         {
             Title = "Экспортировать CXDLPV4", SuggestedFileName = filename,
@@ -691,59 +691,7 @@ public sealed class MainWindow : Window
     private async Task ExportDxf(bool cncFirst = false)
     {
         if (cncFirst && _package is null) { ShowError(new InvalidOperationException("Сначала импортируйте Gerber и сверловку .drl/.xln.")); return; }
-        var contours = new ContourService();
-        var sources = new List<DxfSource>
-        {
-            new("Заготовка и механические отверстия", "blank",
-                "Прямоугольник заготовки и четыре окружности отверстий с точными размерами профиля. Начало координат — левый нижний угол заготовки.",
-                () => contours.Blank(_project.Blank)),
-            new("Точки центровки", "registration",
-                "Пять окружностей с диаметром и координатами светящихся точек из профиля. Начало координат — левый нижний угол заготовки.",
-                () => contours.Registration(_project.Blank)),
-            new("Калибровочный рисунок", "calibration",
-                "Открытая линия 100 мм и замкнутый квадрат 50 × 50 мм с точными эталонными размерами. Начало координат — левый нижний угол заготовки.",
-                () => contours.Calibration(_project.Blank))
-        };
-        if (_package is not null && _project.LayerPaths.TryGetValue(GerberLayerKind.BoardOutline, out var outlinePath))
-            sources.Add(new("Контур платы (линии Gerber)", "board_outline",
-                "Осевые линии и дуги выбранного контура платы, без толщины апертуры. Координаты исходного Gerber; размещение и переворот не применяются.",
-                () => new GerberOutlineService().Read(outlinePath)));
-        if (_printer is { } printer)
-            sources.Add(new($"Текущая экспозиция: {UiText.Exposure(_project.Mode)}", $"exposure_{_project.Mode}",
-                $"Границы белых областей финальной маски с текущими преобразованиями, компенсацией и размещением плат. Начало координат — левый нижний угол заготовки. Точность ограничена шагом LCD: X {printer.PixelPitchXmm:F6}, Y {printer.PixelPitchYmm:F6} мм.",
-                () =>
-                {
-                    var raster = RasterGeometry.Native(printer);
-                    using var mask = _raster.Build(_project, printer, raster, _package?.BoardBoundsMm);
-                    return contours.FromMask(mask.Image, raster, new PointMm(-mask.BlankOnLcd.X, -mask.BlankOnLcd.Y));
-                }));
-        if (_package is not null)
-        {
-            var blankBounds = new RectMm(0, 0, _project.Blank.WidthMm, _project.Blank.HeightMm);
-            var side = _project.IsBottom ? "Bottom" : "Top";
-            var drillSelection = _project.LayerPaths.TryGetValue(GerberLayerKind.Drill, out var selectedDrill)
-                ? Path.GetFileName(selectedDrill) : "все файлы сверловки";
-            var cncDescription = $"Вся раскладка плат, сторона {side}; {drillSelection}. Начало координат — левый нижний угол заготовки, X вправо, Y вверх, мм. Учитываются размещение копий, Bottom и пользовательские зеркалирования текущего режима платы. Оптическое зеркалирование CXDLPV4, инверсия и компенсация экспозиции не применяются. Контуры — осевые линии Gerber; отверстия — окружности исходного диаметра, прямые пазы — замкнутые контуры с дугами. При режиме калибровки используется сторона Top без пользовательских зеркалирований. Траектории инструмента задаются в CAM.";
-            sources.Add(new("CNC: контуры плат и сверловка всей раскладки", "cnc_layout",
-                cncDescription, () => new CncLayoutService().Build(_project, _package), blankBounds));
-            sources.Add(new("CNC: только сверловка всей раскладки", "cnc_drills",
-                cncDescription, () => new CncLayoutService().Build(_project, _package, includeOutline: false), blankBounds));
-            sources.Add(new("CNC: только контуры плат всей раскладки", "cnc_outlines",
-                cncDescription, () => new CncLayoutService().Build(_project, _package, includeDrills: false), blankBounds));
-            foreach (var drillLayer in _package.Layers.Where(l => l.Kind == GerberLayerKind.Drill))
-                sources.Add(new($"Сверловка: {drillLayer.RelativePath} (исходные координаты)", SafeName(Path.GetFileNameWithoutExtension(drillLayer.Name)),
-                    "Отверстия и прямые пазы одного Excellon без размещения на заготовке. Единицы преобразуются в мм, диаметры сохраняются. Для обработки размещённых копий выберите источник CNC.",
-                    () => new ExcellonDrillService().Read(drillLayer.Path)));
-            foreach (var layer in _package.Layers.Where(l => l.Kind != GerberLayerKind.Drill))
-                sources.Add(new($"Gerber: {layer.RelativePath}", SafeName(Path.GetFileNameWithoutExtension(layer.Name)),
-                    "Внешние и внутренние границы рисунка слоя, включая толщину линий и апертуры. Координаты исходного Gerber; размещение и преобразования экспозиции не применяются. Контуры получены из растра с шагом 0,01 мм.",
-                    () => contours.Gerber(layer.Path)));
-        }
-        if (cncFirst)
-        {
-            var first = sources.Single(s => s.FileStem == "cnc_layout");
-            sources.Remove(first); sources.Insert(0, first);
-        }
+        var sources = new DxfSourceCatalog(_raster).Create(_project, _package, _printer, cncFirst);
         var protectedPaths = (_package?.Layers.Select(l => l.Path) ?? [])
             .Concat([_project.TemplatePath, _project.GerberSourcePath]);
         var dialog = new DxfExportWindow(_project.Name, sources, protectedPaths)
@@ -770,6 +718,4 @@ public sealed class MainWindow : Window
         return await dialog.ShowDialog<bool>(this);
     }
 
-    private static string SafeName(string value) => new(value.Select(c =>
-        Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
 }

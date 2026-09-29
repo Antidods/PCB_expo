@@ -6,12 +6,6 @@ using PcbExpo.Core;
 
 namespace PcbExpo.App;
 
-internal sealed record DxfSource(string Label, string FileStem, string Description, Func<IReadOnlyList<DxfContour>> Build,
-    RectMm? ViewBounds = null)
-{
-    public override string ToString() => Label;
-}
-
 internal sealed class DxfExportWindow : Window
 {
     private readonly ComboBox _source = new() { HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -107,7 +101,7 @@ internal sealed class DxfExportWindow : Window
         _export.IsEnabled = false; _source.IsEnabled = false; _selection.IsEnabled = false;
         try
         {
-            var name = new string(_projectName.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
+            var name = UiText.SafeFileName(_projectName);
             var path = await StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
             {
                 Title = "Сохранить контуры в DXF", SuggestedFileName = $"{name}_{source.FileStem}.dxf",

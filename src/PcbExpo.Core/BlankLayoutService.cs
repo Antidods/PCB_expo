@@ -59,6 +59,15 @@ public sealed class BlankLayoutService
 
 public sealed class PanelizationService(BlankLayoutService layout)
 {
+    public IReadOnlyList<RectMm> LayoutPhysical(ProjectModel project, double boardWidthMm, double boardHeightMm)
+    {
+        var boards = Layout(boardWidthMm, boardHeightMm, project.Blank, project.PcbPositionMm, project.Panelization);
+        var coordinates = new CoordinateTransformService();
+        return project.IsBottom
+            ? boards.Select(board => coordinates.FlipBlankAroundVerticalAxis(board, project.Blank)).ToArray()
+            : boards.ToArray();
+    }
+
     public IReadOnlyList<RectMm> Layout(double boardWidthMm, double boardHeightMm,
         BlankProfile blank, PointMm singlePosition, PanelizationSettings settings)
     {

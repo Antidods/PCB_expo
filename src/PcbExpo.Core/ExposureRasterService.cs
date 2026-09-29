@@ -99,8 +99,7 @@ public sealed class ExposureRasterService(
             if (!project.LayerPaths.TryGetValue(project.CurrentLayerKind, out var path))
                 throw new InvalidOperationException("Для выбранного режима экспозиции не назначен слой Gerber.");
 
-            var boards = panelization.Layout(boardBounds.Value.Width, boardBounds.Value.Height,
-                project.Blank, project.PcbPositionMm, project.Panelization);
+            var physicalBoards = panelization.LayoutPhysical(project, boardBounds.Value.Width, boardBounds.Value.Height);
             using var local = gerber.RenderBoard(path, boardBounds.Value, raster, project.AntiAliasing);
             var transform = project.CurrentTransform;
             maskService.Apply(local, transform.Invert, transform.MirrorX, transform.MirrorY,
@@ -108,9 +107,6 @@ public sealed class ExposureRasterService(
             if (project.IsBottom)
                 CvInvoke.Flip(local, local, FlipType.Horizontal);
 
-            var physicalBoards = project.IsBottom
-                ? boards.Select(b => coordinates.FlipBlankAroundVerticalAxis(b, project.Blank)).ToArray()
-                : boards.ToArray();
             foreach (var board in physicalBoards)
             {
                 var lcd = coordinates.BlankToLcd(board, blankOnLcd);

@@ -15,6 +15,9 @@ internal enum AlignmentCommand { Center, Left, Right, Top, Bottom }
 
 internal static class UiText
 {
+    public static string SafeFileName(string value) => new(value.Select(c =>
+        Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
+
     public static string Exposure(ExposureMode mode) => mode switch
     {
         ExposureMode.TopCopper => "Медь Top",

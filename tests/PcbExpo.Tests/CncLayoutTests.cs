@@ -142,6 +142,50 @@ public sealed class CncLayoutTests : IDisposable
         Assert.Equal(before, System.Text.Json.JsonSerializer.Serialize(project, LocalStorage.JsonOptions));
     }
 
+    [Theory]
+    [InlineData(ExposureMode.TopCopper, false)]
+    [InlineData(ExposureMode.BottomCopper, false)]
+    [InlineData(ExposureMode.TopSolderMask, false)]
+    [InlineData(ExposureMode.BottomSolderMask, false)]
+    [InlineData(ExposureMode.TopCopper, true)]
+    [InlineData(ExposureMode.BottomCopper, true)]
+    [InlineData(ExposureMode.TopSolderMask, true)]
+    [InlineData(ExposureMode.BottomSolderMask, true)]
+    public void RasterAndCncKeepTheSamePhysicalBoardPositions(ExposureMode mode, bool fillBlank)
+    {
+        var (project, package) = Layout();
+        using var ownedPackage = package;
+        project.Mode = mode;
+        project.LayerPaths[project.CurrentLayerKind] = project.LayerPaths[GerberLayerKind.BoardOutline];
+        RectMm[] expected;
+        if (fillBlank)
+        {
+            project.Blank.WidthMm = 100; project.Blank.HeightMm = 70;
+            project.Panelization = new PanelizationSettings
+            {
+                Mode = PlacementMode.FillBlank, SpacingXmm = 5, SpacingYmm = 5,
+                MarginLeftMm = 20, MarginRightMm = 20, MarginBottomMm = 20, MarginTopMm = 20
+            };
+            expected = project.IsBottom
+                ? [new(60, 20, 20, 10), new(35, 20, 20, 10), new(60, 35, 20, 10), new(35, 35, 20, 10)]
+                : [new(20, 20, 20, 10), new(45, 20, 20, 10), new(20, 35, 20, 10), new(45, 35, 20, 10)];
+        }
+        else expected = [new(project.IsBottom ? 105 : 25, 20, 20, 10)];
+
+        var printer = new PrinterInfo("test", "CXDLPV4", 1200, 678, 223, 126,
+            223.0 / 1200, 126.0 / 678, 1, 1, 255);
+        var layout = new BlankLayoutService();
+        var renderer = new ExposureRasterService(new CoordinateTransformService(), layout,
+            new PanelizationService(layout), new GerberRenderService(), new ExposureMaskService());
+        using var mask = renderer.Build(project, printer, RasterGeometry.Preview(printer), package.BoardBoundsMm);
+        var cncBoards = new CncLayoutService().Build(project, package, includeDrills: false)
+            .Cast<DxfPolyline>().Select(c => new RectMm(c.Points.Min(p => p.X), c.Points.Min(p => p.Y),
+                c.Points.Max(p => p.X) - c.Points.Min(p => p.X), c.Points.Max(p => p.Y) - c.Points.Min(p => p.Y)));
+
+        Assert.Equal(expected, mask.Boards);
+        Assert.Equal(expected, cncBoards);
+    }
+
     [Fact]
     public void MisalignedDrillOriginAndMissingOutlineAreRejected()
     {
