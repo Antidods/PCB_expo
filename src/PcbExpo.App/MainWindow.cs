@@ -33,6 +33,13 @@ public sealed class MainWindow : Window
     private readonly ComboBox _outline = new();
     private readonly ComboBox _placement = new();
     private readonly ComboBox _profile = new();
+    private readonly TextBlock _calibrationHint = new()
+    {
+        Text = "Эталон: линия 100 мм и квадрат 50 × 50 мм. Минимальная заготовка 110 × 70 мм. Порядок измерений — в справке.",
+        TextWrapping = TextWrapping.Wrap, IsVisible = false
+    };
+    private readonly StackPanel _processCalibrationPanel = new() { Spacing = 6, IsVisible = false };
+    private bool _exportingCalibration;
     private readonly CheckBox _invert = new() { Content = "Инверсия" };
     private readonly CheckBox _mirrorX = new() { Content = "Зеркалирование X" };
     private readonly CheckBox _mirrorY = new() { Content = "Зеркалирование Y" };
@@ -95,6 +102,15 @@ public sealed class MainWindow : Window
             RebuildPreview();
         };
         editor.Children.Add(_mode);
+        editor.Children.Add(_calibrationHint);
+        editor.Children.Add(Button("Справка по калибровке", async () => await new CalibrationHelpWindow().ShowDialog(this)));
+        _processCalibrationPanel.Children.Add(new TextBlock
+        {
+            Text = "Матрица зигзагов: строки — толщина/зазор, столбцы — компенсация. Каждая проба времени на свежем образце. Для оценки тонких линий увеличьте preview.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        _processCalibrationPanel.Children.Add(Button("Параметры теста и результат", async () => await ConfigureProcessCalibration()));
+        editor.Children.Add(_processCalibrationPanel);
         editor.Children.Add(_layer);
         editor.Children.Add(new TextBlock { Text = "Контур платы (при необходимости выберите вручную)" });
         editor.Children.Add(_outline);
@@ -206,7 +222,10 @@ public sealed class MainWindow : Window
         Section(right, "Экспорт");
         right.Children.Add(Button("Точки центровки", () => SelectMode(ExposureMode.Registration)));
         right.Children.Add(Button("Калибровка", () => SelectMode(ExposureMode.Calibration)));
+        right.Children.Add(Button("Время и компенсация", () => SelectMode(ExposureMode.ExposureCalibration)));
         right.Children.Add(Button("Экспортировать CXDLPV4", async () => await Export()));
+        right.Children.Add(Button("Экспорт серии времени", async () => await ExportCalibrationSeries()));
+        right.Children.Add(Button("Экспорт контуров в DXF", async () => await ExportDxf()));
         Section(right, "Состояние и предупреждения");
         right.Children.Add(_status);
 
@@ -298,6 +317,7 @@ public sealed class MainWindow : Window
             case ExposureMode.TopSolderMask or ExposureMode.BottomSolderMask: _project.Exposure.SolderMaskSeconds = value; break;
             case ExposureMode.Registration: _project.Exposure.RegistrationSeconds = value; break;
             case ExposureMode.Calibration: _project.Exposure.CalibrationSeconds = value; break;
+            case ExposureMode.ExposureCalibration: _project.Exposure.ProcessCalibrationSeconds = value; break;
         }
         _exposureProfiles.Save(_project.Exposure);
     }
@@ -319,12 +339,17 @@ public sealed class MainWindow : Window
         _syncing = true;
         _mode.SelectedItem = _mode.ItemsSource?.Cast<DisplayChoice<ExposureMode>>()
             .FirstOrDefault(x => x.Value == _project.Mode);
+        _calibrationHint.IsVisible = _project.Mode == ExposureMode.Calibration;
+        var processCalibration = _project.Mode == ExposureMode.ExposureCalibration;
+        _processCalibrationPanel.IsVisible = processCalibration;
+        _compensation.IsEnabled = !processCalibration;
+        _mirrorX.IsEnabled = _mirrorY.IsEnabled = _aa.IsEnabled = !processCalibration;
         _placement.SelectedItem = _placement.ItemsSource?.Cast<DisplayChoice<CorePlacementMode>>()
             .FirstOrDefault(x => x.Value == _project.Panelization.Mode);
         _invert.IsChecked = _project.CurrentTransform.Invert;
-        _mirrorX.IsChecked = _project.CurrentTransform.MirrorX;
-        _mirrorY.IsChecked = _project.CurrentTransform.MirrorY;
-        _aa.IsChecked = _project.AntiAliasing;
+        _mirrorX.IsChecked = !processCalibration && _project.CurrentTransform.MirrorX;
+        _mirrorY.IsChecked = !processCalibration && _project.CurrentTransform.MirrorY;
+        _aa.IsChecked = !processCalibration && _project.AntiAliasing;
         _x.Text = UiText.Number(_project.PcbPositionMm.X);
         _y.Text = UiText.Number(_project.PcbPositionMm.Y);
         _time.Text = UiText.Number(_project.CurrentExposureSeconds);
@@ -401,7 +426,7 @@ public sealed class MainWindow : Window
     private void RebuildPreview(bool fullResolution = false)
     {
         if (_printer is null) { UpdateSummary(); return; }
-        if (_package is null && _project.Mode is not (ExposureMode.Registration or ExposureMode.Calibration))
+        if (_package is null && _project.Mode is not (ExposureMode.Registration or ExposureMode.Calibration or ExposureMode.ExposureCalibration))
         {
             _preview.ClearPreview();
             _boardCount = 0;
@@ -412,7 +437,8 @@ public sealed class MainWindow : Window
         }
         try
         {
-            var raster = fullResolution ? RasterGeometry.Native(_printer) : RasterGeometry.Preview(_printer);
+            var native = fullResolution || _project.Mode == ExposureMode.ExposureCalibration;
+            var raster = native ? RasterGeometry.Native(_printer) : RasterGeometry.Preview(_printer);
             using var result = _raster.Build(_project, _printer, raster, _package?.BoardBoundsMm);
             var image = CvInvoke.Imencode(".png", result.Image);
             using var stream = new MemoryStream(image);
@@ -420,7 +446,7 @@ public sealed class MainWindow : Window
             _preview.SetPreview(bitmap, _printer, _project, result.BlankOnLcd, result.Boards.ToArray());
             _boardCount = result.Boards.Count;
             _positions = result.Boards.ToArray();
-            _status.Text = fullResolution ? "Маска в разрешении LCD сформирована и показана в preview." :
+            _status.Text = native ? "Маска в разрешении LCD сформирована и показана в preview." :
                 "Preview обновлён. Белое означает, что LCD пропускает UV.";
         }
         catch (Exception error)
@@ -577,6 +603,105 @@ public sealed class MainWindow : Window
             _status.Text = $"Экспорт и повторное чтение успешны: {output.Path}";
         }
         catch (Exception error) { ShowError(error); }
+    }
+
+    private async Task ConfigureProcessCalibration()
+    {
+        await new ExposureCalibrationWindow(_project, _printer, (settings, time, target) =>
+        {
+            _project.ProcessCalibration = settings;
+            _project.Exposure.ProcessCalibrationSeconds = time;
+            if (target == CalibrationApplyTarget.Copper)
+            {
+                _project.Exposure.CopperSeconds = time;
+                _project.Exposure.CopperCompensationMm = settings.SelectedCompensationMm;
+            }
+            else if (target == CalibrationApplyTarget.SolderMask)
+            {
+                _project.Exposure.SolderMaskSeconds = time;
+                _project.Exposure.SolderMaskCompensationMm = settings.SelectedCompensationMm;
+            }
+            _exposureProfiles.Save(_project.Exposure);
+            SyncModeFields(); RebuildPreview();
+            if (target is not null) _status.Text = $"Результат калибровки применён к {(target == CalibrationApplyTarget.Copper ? "меди" : "паяльной маске")}: {UiText.Number(time)} с, {UiText.Number(settings.SelectedCompensationMm)} мм.";
+        }).ShowDialog(this);
+    }
+
+    private async Task ExportCalibrationSeries()
+    {
+        if (_exportingCalibration) return;
+        SelectMode(ExposureMode.ExposureCalibration);
+        if (_printer is null) { ShowError(new InvalidOperationException("Сначала загрузите шаблон принтера.")); return; }
+        try { _project.ProcessCalibration.Validate(requireTimes: true); }
+        catch (Exception error)
+        {
+            ShowError(error);
+            await ConfigureProcessCalibration();
+            try { _project.ProcessCalibration.Validate(requireTimes: true); }
+            catch (Exception configurationError) { ShowError(configurationError); return; }
+        }
+        var folders = await StorageProvider.OpenFolderPickerAsync(new FolderPickerOpenOptions
+            { Title = "Папка для серии калибровки (будет создана отдельная подпапка)" });
+        if (folders.Count == 0) return;
+        _exportingCalibration = true;
+        var wasEnabled = ((Control)Content!).IsEnabled;
+        ((Control)Content!).IsEnabled = false;
+        try
+        {
+            var progress = new Progress<string>(message => _status.Text = message);
+            var result = await Task.Run(() => new ExposureCalibrationExportService().Export(_project, _printer,
+                folders[0].Path.LocalPath, progress));
+            _status.Text = $"Серия калибровки сохранена: {result.Directory}. Файлов: {result.Files.Count}; повторное чтение каждого успешно. Каждый опыт — на свежем образце.";
+            _log.Write($"ExposureCalibrationExport={result.Directory}; files={result.Files.Count}");
+        }
+        catch (Exception error) { ShowError(error); }
+        finally { _exportingCalibration = false; ((Control)Content!).IsEnabled = wasEnabled; }
+    }
+
+    private async Task ExportDxf()
+    {
+        var contours = new ContourService();
+        var sources = new List<DxfSource>
+        {
+            new("Заготовка и механические отверстия", "blank",
+                "Прямоугольник заготовки и четыре окружности отверстий с точными размерами профиля. Начало координат — левый нижний угол заготовки.",
+                () => contours.Blank(_project.Blank)),
+            new("Точки центровки", "registration",
+                "Пять окружностей с диаметром и координатами светящихся точек из профиля. Начало координат — левый нижний угол заготовки.",
+                () => contours.Registration(_project.Blank)),
+            new("Калибровочный рисунок", "calibration",
+                "Открытая линия 100 мм и замкнутый квадрат 50 × 50 мм с точными эталонными размерами. Начало координат — левый нижний угол заготовки.",
+                () => contours.Calibration(_project.Blank))
+        };
+        if (_package is not null && _project.LayerPaths.TryGetValue(GerberLayerKind.BoardOutline, out var outlinePath))
+            sources.Add(new("Контур платы (линии Gerber)", "board_outline",
+                "Осевые линии и дуги выбранного контура платы, без толщины апертуры. Координаты исходного Gerber; размещение и переворот не применяются.",
+                () => new GerberOutlineService().Read(outlinePath)));
+        if (_printer is { } printer)
+            sources.Add(new($"Текущая экспозиция: {UiText.Exposure(_project.Mode)}", $"exposure_{_project.Mode}",
+                $"Границы белых областей финальной маски с текущими преобразованиями, компенсацией и размещением плат. Начало координат — левый нижний угол заготовки. Точность ограничена шагом LCD: X {printer.PixelPitchXmm:F6}, Y {printer.PixelPitchYmm:F6} мм.",
+                () =>
+                {
+                    var raster = RasterGeometry.Native(printer);
+                    using var mask = _raster.Build(_project, printer, raster, _package?.BoardBoundsMm);
+                    return contours.FromMask(mask.Image, raster, new PointMm(-mask.BlankOnLcd.X, -mask.BlankOnLcd.Y));
+                }));
+        if (_package is not null)
+            foreach (var layer in _package.Layers.Where(l => l.Kind != GerberLayerKind.Drill))
+                sources.Add(new($"Gerber: {layer.RelativePath}", SafeName(Path.GetFileNameWithoutExtension(layer.Name)),
+                    "Внешние и внутренние границы рисунка слоя, включая толщину линий и апертуры. Координаты исходного Gerber; размещение и преобразования экспозиции не применяются. Контуры получены из растра с шагом 0,01 мм.",
+                    () => contours.Gerber(layer.Path)));
+        var protectedPaths = (_package?.Layers.Select(l => l.Path) ?? [])
+            .Concat([_project.TemplatePath, _project.GerberSourcePath]);
+        var dialog = new DxfExportWindow(_project.Name, sources, protectedPaths)
+        {
+            Exported = (path, count) =>
+            {
+                _status.Text = $"DXF сохранён: {path}. Контуров: {count}; единицы — мм.";
+                _log.Write($"DxfExport={path}; contours={count}; units=mm");
+            }
+        };
+        await dialog.ShowDialog(this);
     }
 
     private async Task<bool> ConfirmExport()

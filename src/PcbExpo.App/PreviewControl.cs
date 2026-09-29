@@ -32,6 +32,8 @@ public sealed class PreviewControl : Control
         _bitmap = bitmap;
         _printer = printer;
         _project = project;
+        RenderOptions.SetBitmapInterpolationMode(this, project.Mode == ExposureMode.ExposureCalibration
+            ? BitmapInterpolationMode.HighQuality : BitmapInterpolationMode.None);
         _blankOnLcd = blankOnLcd;
         _boards = boards;
         InvalidateVisual();
@@ -140,7 +142,7 @@ public sealed class PreviewControl : Control
             _lastPointer = p;
         }
         else if (props.IsLeftButtonPressed && _project.Panelization.Mode == PcbExpo.Core.PlacementMode.Single &&
-                 _boards.Count == 1 && _project.Mode is not (ExposureMode.Registration or ExposureMode.Calibration))
+                 _boards.Count == 1 && _project.Mode is not (ExposureMode.Registration or ExposureMode.Calibration or ExposureMode.ExposureCalibration))
         {
             var lcd = ToLcd(p);
             var local = new PointMm(lcd.X - _blankOnLcd.X, lcd.Y - _blankOnLcd.Y);

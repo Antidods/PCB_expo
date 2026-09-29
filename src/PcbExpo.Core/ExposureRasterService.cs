@@ -43,9 +43,11 @@ public sealed class ExposureMaskService
         if (mirrorY) CvInvoke.Flip(mask, mask, FlipType.Vertical);
         if (compensationMm != 0)
         {
-            var rx = Math.Max(1, CoordinateTransformService.MmToPx(Math.Abs(compensationMm), raster.PixelsPerMmX));
-            var ry = Math.Max(1, CoordinateTransformService.MmToPx(Math.Abs(compensationMm), raster.PixelsPerMmY));
-            using var kernel = CvInvoke.GetStructuringElement(MorphShapes.Ellipse, new Size(2 * rx + 1, 2 * ry + 1), new Point(rx, ry));
+            var rx = Math.Max(0, CoordinateTransformService.MmToPx(Math.Abs(compensationMm), raster.PixelsPerMmX));
+            var ry = Math.Max(0, CoordinateTransformService.MmToPx(Math.Abs(compensationMm), raster.PixelsPerMmY));
+            // OpenCV's ellipse degenerates to its center for a one-row kernel; a line is needed for a single-axis shift.
+            var shape = rx == 0 || ry == 0 ? MorphShapes.Rectangle : MorphShapes.Ellipse;
+            using var kernel = CvInvoke.GetStructuringElement(shape, new Size(2 * rx + 1, 2 * ry + 1), new Point(rx, ry));
             CvInvoke.MorphologyEx(mask, mask,
                 compensationMm > 0 ? MorphOp.Dilate : MorphOp.Erode, kernel,
                 new Point(-1, -1), 1, BorderType.Constant, new MCvScalar(0));
@@ -85,6 +87,11 @@ public sealed class ExposureRasterService(
             if (project.Mode == ExposureMode.Calibration)
             {
                 DrawCalibration(output, project.Blank, blankOnLcd, raster);
+                return new MaskResult(output, blankOnLcd, []);
+            }
+            if (project.Mode == ExposureMode.ExposureCalibration)
+            {
+                new ExposureCalibrationRenderer().Draw(output, project, blankOnLcd, raster);
                 return new MaskResult(output, blankOnLcd, []);
             }
             if (boardBounds is null)
@@ -146,15 +153,16 @@ public sealed class ExposureRasterService(
 
     private void DrawCalibration(Mat output, BlankProfile blank, RectMm blankOnLcd, RasterGeometry raster)
     {
-        if (blank.WidthMm < 110 || blank.HeightMm < 70)
-            throw new InvalidOperationException("Для калибровочного рисунка нужна заготовка не меньше 110 × 70 мм.");
-        var center = new PointMm(blank.WidthMm / 2, blank.HeightMm / 2);
-        var lineA = coordinates.BlankToPixel(new PointMm(center.X - 50, center.Y + 28), blankOnLcd, raster);
-        var lineB = coordinates.BlankToPixel(new PointMm(center.X + 50, center.Y + 28), blankOnLcd, raster);
+        var pattern = CalibrationPattern.Create(blank);
+        var lineA = coordinates.BlankToPixel(pattern.LineStart, blankOnLcd, raster);
+        var lineB = coordinates.BlankToPixel(pattern.LineEnd, blankOnLcd, raster);
         CvInvoke.Line(output, new Point(lineA.X, lineA.Y), new Point(lineB.X, lineB.Y), new MCvScalar(255), 1, LineType.EightConnected);
-        var squareA = coordinates.BlankToPixel(new PointMm(center.X - 25, center.Y - 26), blankOnLcd, raster);
-        var squareB = coordinates.BlankToPixel(new PointMm(center.X + 25, center.Y + 24), blankOnLcd, raster);
-        CvInvoke.Rectangle(output, new Rectangle(squareA.X, squareB.Y, squareB.X - squareA.X, squareA.Y - squareB.Y), new MCvScalar(255), 1, LineType.EightConnected);
+        var squareA = coordinates.BlankToPixel(new PointMm(pattern.Square.X, pattern.Square.Y), blankOnLcd, raster);
+        var squareB = coordinates.BlankToPixel(new PointMm(pattern.Square.Right, pattern.Square.Top), blankOnLcd, raster);
+        // Use the same four reference points as the DXF square.
+        CvInvoke.Polylines(output, [new Point(squareA.X, squareA.Y), new Point(squareA.X, squareB.Y),
+            new Point(squareB.X, squareB.Y), new Point(squareB.X, squareA.Y)], true,
+            new MCvScalar(255), 1, LineType.EightConnected);
     }
 }
 

@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace PcbExpo.Core;
 
-public enum ExposureMode { TopCopper, BottomCopper, TopSolderMask, BottomSolderMask, Registration, Calibration }
+public enum ExposureMode { TopCopper, BottomCopper, TopSolderMask, BottomSolderMask, Registration, Calibration, ExposureCalibration }
 public enum PlacementMode { Single, FillBlank }
 public enum BottomPhysicalFlip { VerticalAxis }
 
@@ -45,6 +45,7 @@ public sealed class ExposureSettings
     public double SolderMaskSeconds { get; set; }
     public double RegistrationSeconds { get; set; }
     public double CalibrationSeconds { get; set; }
+    public double ProcessCalibrationSeconds { get; set; }
     public byte? LightPwm { get; set; }
     public double CopperCompensationMm { get; set; }
     public double SolderMaskCompensationMm { get; set; }
@@ -71,6 +72,7 @@ public sealed class ProjectModel
         [ExposureMode.BottomSolderMask] = new() { Invert = true }
     };
     public ExposureSettings Exposure { get; set; } = new();
+    public ExposureCalibrationSettings ProcessCalibration { get; set; } = new();
     public bool AntiAliasing { get; set; }
 
     [JsonIgnore]
@@ -92,6 +94,7 @@ public sealed class ProjectModel
         ExposureMode.TopSolderMask or ExposureMode.BottomSolderMask => Exposure.SolderMaskSeconds,
         ExposureMode.Registration => Exposure.RegistrationSeconds,
         ExposureMode.Calibration => Exposure.CalibrationSeconds,
+        ExposureMode.ExposureCalibration => Exposure.ProcessCalibrationSeconds,
         _ => 0
     };
 

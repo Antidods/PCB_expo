@@ -23,6 +23,7 @@ internal static class UiText
         ExposureMode.BottomSolderMask => "Паяльная маска Bottom",
         ExposureMode.Registration => "Точки центровки",
         ExposureMode.Calibration => "Калибровка",
+        ExposureMode.ExposureCalibration => "Калибровка времени и компенсации",
         _ => mode.ToString()
     };
 
@@ -83,13 +84,15 @@ internal static class UiText
             $"Режим: {Exposure(project.Mode)}\nПлат: {boardCount}\n" +
             $"Плата X/Y: {Number(project.PcbPositionMm.X)} / {Number(project.PcbPositionMm.Y)} мм\n" +
             $"Позиции на заготовке: {string.Join("; ", positions.Select(p => $"({Number(p.X)}, {Number(p.Y)})"))}\n" +
-            $"Зеркалирование X/Y: {YesNo(project.CurrentTransform.MirrorX)} / {YesNo(project.CurrentTransform.MirrorY)}\n" +
+            $"Зеркалирование X/Y: {YesNo(project.Mode != ExposureMode.ExposureCalibration && project.CurrentTransform.MirrorX)} / {YesNo(project.Mode != ExposureMode.ExposureCalibration && project.CurrentTransform.MirrorY)}\n" +
             $"Инверсия: {YesNo(project.CurrentTransform.Invert)}\n" +
             $"Экспозиция: {Number(project.CurrentExposureSeconds)} с\n" +
-            $"Компенсация: {Number(project.CurrentCompensationMm)} мм\n" +
+            (project.Mode == ExposureMode.ExposureCalibration ?
+                $"Компенсации столбцов: {string.Join("; ", project.ProcessCalibration.CompensationsMm.Select(Number))} мм\n" :
+                $"Компенсация: {Number(project.CurrentCompensationMm)} мм\n") +
             $"PWM: {project.Exposure.LightPwm?.ToString() ?? "из шаблона"}\n" +
             "Физический переворот Bottom: относительно вертикальной оси центра заготовки\n" +
-            $"Сглаживание: {YesNo(project.AntiAliasing)}\n" +
+            $"Сглаживание: {YesNo(project.Mode != ExposureMode.ExposureCalibration && project.AntiAliasing)}\n" +
             "Белое на preview означает, что LCD пропускает UV.";
     }
 }
