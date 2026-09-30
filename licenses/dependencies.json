@@ -1,0 +1,1470 @@
+[
+  {
+    "package": "Avalonia.Angle.Windows.Natives/2.1.27548.20260419",
+    "license": "LICENSE",
+    "licenseType": "file",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/angle/",
+      "commit": "1c89805903c1482166356d3b950d474973180e61"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Angle.Windows.Natives-2.1.27548.20260419-LICENSE"
+    ]
+  },
+  {
+    "package": "Avalonia.BuildServices/11.3.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia.BuildServices",
+      "commit": "777f975b0a0cecf0311273711d56697212c558c0"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2023-2025 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.BuildServices-11.3.2-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia.BuildServices/777f975b0a0cecf0311273711d56697212c558c0/LICENSE"
+  },
+  {
+    "package": "Avalonia.Desktop/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia.FreeDesktop.AtSpi/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia.FreeDesktop/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia.HarfBuzz/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia.Native/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia.Remote.Protocol/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia.Skia/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia.Themes.Fluent/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia.Win32/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia.X11/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "Avalonia/12.1.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/AvaloniaUI/Avalonia/",
+      "commit": "d3c867a9e2de379249b03dbeb3495bd7f076a81a"
+    },
+    "authors": "Avalonia Team",
+    "copyright": "Copyright 2013-2026 © The AvaloniaUI Project",
+    "notices": [
+      "licenses/Avalonia.Desktop-12.1.2-licence.md"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/AvaloniaUI/Avalonia/d3c867a9e2de379249b03dbeb3495bd7f076a81a/licence.md"
+  },
+  {
+    "package": "BinarySerializer/10.1.0",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/jefffhaynes/BinarySerializer",
+      "commit": "f6cd5f594562ef674bcc002f30b610a05370496c"
+    },
+    "authors": "Jeff Haynes",
+    "notices": [
+      "licenses/BinarySerializer-10.1.0-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/jefffhaynes/BinarySerializer/f6cd5f594562ef674bcc002f30b610a05370496c/LICENSE"
+  },
+  {
+    "package": "CommunityToolkit.Diagnostics/8.4.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/CommunityToolkit/dotnet",
+      "branch": "refs/heads/rel/8.4.2",
+      "commit": "35dfe7b12da0e64384bfaec7ebc0883196a89f9f"
+    },
+    "authors": "Microsoft",
+    "copyright": "(c) .NET Foundation and Contributors. All rights reserved.",
+    "notices": [
+      "licenses/CommunityToolkit.Diagnostics-8.4.2-License.md",
+      "licenses/CommunityToolkit.Diagnostics-8.4.2-ThirdPartyNotices.txt"
+    ]
+  },
+  {
+    "package": "CommunityToolkit.HighPerformance/8.4.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/CommunityToolkit/dotnet",
+      "branch": "refs/heads/rel/8.4.2",
+      "commit": "35dfe7b12da0e64384bfaec7ebc0883196a89f9f"
+    },
+    "authors": "Microsoft",
+    "copyright": "(c) .NET Foundation and Contributors. All rights reserved.",
+    "notices": [
+      "licenses/CommunityToolkit.Diagnostics-8.4.2-License.md",
+      "licenses/CommunityToolkit.Diagnostics-8.4.2-ThirdPartyNotices.txt"
+    ]
+  },
+  {
+    "package": "CommunityToolkit.Mvvm/8.4.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/CommunityToolkit/dotnet",
+      "branch": "refs/heads/rel/8.4.2",
+      "commit": "35dfe7b12da0e64384bfaec7ebc0883196a89f9f"
+    },
+    "authors": "Microsoft",
+    "copyright": "(c) .NET Foundation and Contributors. All rights reserved.",
+    "notices": [
+      "licenses/CommunityToolkit.Diagnostics-8.4.2-License.md",
+      "licenses/CommunityToolkit.Diagnostics-8.4.2-ThirdPartyNotices.txt"
+    ]
+  },
+  {
+    "package": "DotNext.IO/6.4.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/dotNext.git",
+      "commit": "6ae1603eafd8e09dc3a087681048b900ae0843c7"
+    },
+    "authors": ".NET Foundation and Contributors",
+    "copyright": "Copyright © .NET Foundation and Contributors",
+    "notices": [
+      "licenses/DotNext.IO-6.4.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/dotNext/6ae1603eafd8e09dc3a087681048b900ae0843c7/LICENSE"
+  },
+  {
+    "package": "DotNext/6.7.2",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/dotNext.git",
+      "commit": "50fe09e16d66526a080e7f7fba14deedd0d4c638"
+    },
+    "authors": ".NET Foundation and Contributors",
+    "copyright": "Copyright © .NET Foundation and Contributors",
+    "notices": [
+      "licenses/DotNext.IO-6.4.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/dotNext/50fe09e16d66526a080e7f7fba14deedd0d4c638/LICENSE"
+  },
+  {
+    "package": "Emgu.CV.runtime.mini.macos/4.13.0.5924",
+    "license": "LICENSE.txt",
+    "licenseType": "file",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/emgucv/emgucv"
+    },
+    "authors": "Emgu Corporation",
+    "copyright": "© Emgu Corporation 2026. All rights reserved.",
+    "notices": [
+      "licenses/Emgu.CV.runtime.mini.macos-4.13.0.5924-LICENSE.txt"
+    ]
+  },
+  {
+    "package": "Emgu.CV.runtime.mini.ubuntu-24.04-x64/4.13.0.5924",
+    "license": "LICENSE.txt",
+    "licenseType": "file",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/emgucv/emgucv"
+    },
+    "authors": "Emgu Corporation",
+    "copyright": "© Emgu Corporation 2026. All rights reserved.",
+    "notices": [
+      "licenses/Emgu.CV.runtime.mini.macos-4.13.0.5924-LICENSE.txt"
+    ]
+  },
+  {
+    "package": "Emgu.CV.runtime.mini.windows/4.13.0.5924",
+    "license": "LICENSE.txt",
+    "licenseType": "file",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/emgucv/emgucv"
+    },
+    "authors": "Emgu Corporation",
+    "copyright": "© Emgu Corporation 2026. All rights reserved.",
+    "notices": [
+      "licenses/Emgu.CV.runtime.mini.windows-4.13.0.5924-LICENSE.txt"
+    ]
+  },
+  {
+    "package": "Emgu.CV/4.13.0.5924",
+    "license": "LICENSE.txt",
+    "licenseType": "file",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/emgucv/emgucv",
+      "commit": "800019a40abd4db90604f70aa60622dbaff088ae"
+    },
+    "authors": "Emgu Corporation",
+    "copyright": "© Emgu Corporation 2026. All rights reserved.",
+    "notices": [
+      "licenses/Emgu.CV.runtime.mini.windows-4.13.0.5924-LICENSE.txt"
+    ]
+  },
+  {
+    "package": "Emgu.runtime.windows.msvc.rt.arm64/19.44.35224",
+    "license": "LICENSE.txt",
+    "licenseType": "file",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/emgucv/emgucv"
+    },
+    "authors": "Emgu Corporation",
+    "copyright": "© Emgu Corporation 2026. All rights reserved.",
+    "notices": [
+      "licenses/Emgu.CV.runtime.mini.windows-4.13.0.5924-LICENSE.txt"
+    ]
+  },
+  {
+    "package": "Emgu.runtime.windows.msvc.rt.x64/19.44.35224",
+    "license": "LICENSE.txt",
+    "licenseType": "file",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/emgucv/emgucv"
+    },
+    "authors": "Emgu Corporation",
+    "copyright": "© Emgu Corporation 2026. All rights reserved.",
+    "notices": [
+      "licenses/Emgu.CV.runtime.mini.windows-4.13.0.5924-LICENSE.txt"
+    ]
+  },
+  {
+    "package": "Emgu.runtime.windows.msvc.rt.x86/19.44.35224",
+    "license": "LICENSE.txt",
+    "licenseType": "file",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/emgucv/emgucv"
+    },
+    "authors": "Emgu Corporation",
+    "copyright": "© Emgu Corporation 2026. All rights reserved.",
+    "notices": [
+      "licenses/Emgu.CV.runtime.mini.windows-4.13.0.5924-LICENSE.txt"
+    ]
+  },
+  {
+    "package": "EmguExtensions/0.1.9",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "Git",
+      "url": "https://github.com/sn4k3/EmguExtensions",
+      "branch": "refs/heads/main",
+      "commit": "a71d94e31806a86fe6ce137e920765a0e3991dc4"
+    },
+    "authors": "Tiago Conceição",
+    "copyright": "Copyright 2026-2026 © PTRTECH",
+    "notices": [
+      "licenses/EmguExtensions-0.1.9-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/sn4k3/EmguExtensions/a71d94e31806a86fe6ce137e920765a0e3991dc4/LICENSE"
+  },
+  {
+    "package": "HarfBuzzSharp.NativeAssets.Linux/8.3.1.3",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.2",
+      "commit": "2888c737ad016d584c74525e2d35db5097ea8576"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt",
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "package": "HarfBuzzSharp.NativeAssets.macOS/8.3.1.3",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.2",
+      "commit": "2888c737ad016d584c74525e2d35db5097ea8576"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt",
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "package": "HarfBuzzSharp.NativeAssets.WebAssembly/8.3.1.3",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.2",
+      "commit": "2888c737ad016d584c74525e2d35db5097ea8576"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt",
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "package": "HarfBuzzSharp.NativeAssets.Win32/8.3.1.3",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.2",
+      "commit": "2888c737ad016d584c74525e2d35db5097ea8576"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt",
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "package": "HarfBuzzSharp/8.3.1.3",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.2",
+      "commit": "2888c737ad016d584c74525e2d35db5097ea8576"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt"
+    ]
+  },
+  {
+    "package": "K4os.Compression.LZ4.Streams/1.3.8",
+    "license": "https://github.com/MiloszKrajewski/K4os.Compression.LZ4/blob/master/LICENSE?raw=true",
+    "licenseType": "url",
+    "source": {
+      "url": "https://github.com/MiloszKrajewski/K4os.Compression.LZ4"
+    },
+    "authors": "Milosz Krajewski",
+    "copyright": "Milosz Krajewski",
+    "notices": [
+      "licenses/K4os.Compression.LZ4.Streams-1.3.8-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/MiloszKrajewski/K4os.Compression.LZ4/master/LICENSE"
+  },
+  {
+    "package": "K4os.Compression.LZ4/1.3.8",
+    "license": "https://github.com/MiloszKrajewski/K4os.Compression.LZ4/blob/master/LICENSE?raw=true",
+    "licenseType": "url",
+    "source": {
+      "url": "https://github.com/MiloszKrajewski/K4os.Compression.LZ4"
+    },
+    "authors": "Milosz Krajewski",
+    "copyright": "Milosz Krajewski",
+    "notices": [
+      "licenses/K4os.Compression.LZ4.Streams-1.3.8-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/MiloszKrajewski/K4os.Compression.LZ4/master/LICENSE"
+  },
+  {
+    "package": "K4os.Hash.xxHash/1.0.8",
+    "license": "https://raw.githubusercontent.com/MiloszKrajewski/K4os.Hash.xxHash/master/LICENSE",
+    "licenseType": "url",
+    "source": {
+      "url": "https://github.com/MiloszKrajewski/K4os.Hash.xxHash"
+    },
+    "authors": "Milosz Krajewski",
+    "copyright": "Milosz Krajewski",
+    "notices": [
+      "licenses/K4os.Compression.LZ4.Streams-1.3.8-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/MiloszKrajewski/K4os.Hash.xxHash/master/LICENSE"
+  },
+  {
+    "package": "KdTree/1.4.1",
+    "license": "https://raw.github.com/codeandcats/KdTree/master/LICENSE",
+    "licenseType": "url",
+    "authors": "codeandcats@gmail.com, RobIII",
+    "copyright": "Copyright codeandcats@gmail.com 2013",
+    "notices": [
+      "licenses/KdTree-1.4.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/codeandcats/KdTree/master/LICENSE"
+  },
+  {
+    "package": "MicroCom.Runtime/0.11.6",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/kekekeks/MicroCom",
+      "commit": "76785efcafd91b5902fd19dd11145f6dd655b7b4"
+    },
+    "authors": "MicroCom.Runtime",
+    "copyright": "Copyright 2021 © Nikita Tsukanov",
+    "notices": [
+      "licenses/MicroCom.Runtime-0.11.6-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/kekekeks/MicroCom/76785efcafd91b5902fd19dd11145f6dd655b7b4/LICENSE"
+  },
+  {
+    "package": "Microsoft.CodeAnalysis.Analyzers/5.9.0-1.26328.17",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/roslyn",
+      "commit": "411469b8cd5e1ac891644ef6e3bf5cc8fa7943cc"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-ThirdPartyNotices.txt",
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-License.txt"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/roslyn/411469b8cd5e1ac891644ef6e3bf5cc8fa7943cc/License.txt"
+  },
+  {
+    "package": "Microsoft.CodeAnalysis.Common/5.9.0",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/roslyn",
+      "branch": "release/insiders",
+      "commit": "35d9211b841e7613c1d2f8f5af6d628ace696c4c"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.CodeAnalysis.Common-5.9.0-ThirdPartyNotices.rtf",
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-License.txt"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/License.txt"
+  },
+  {
+    "package": "Microsoft.CodeAnalysis.CSharp.Scripting/5.9.0",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/roslyn",
+      "branch": "release/insiders",
+      "commit": "35d9211b841e7613c1d2f8f5af6d628ace696c4c"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.CodeAnalysis.Common-5.9.0-ThirdPartyNotices.rtf",
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-License.txt"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/License.txt"
+  },
+  {
+    "package": "Microsoft.CodeAnalysis.CSharp/5.9.0",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/roslyn",
+      "branch": "release/insiders",
+      "commit": "35d9211b841e7613c1d2f8f5af6d628ace696c4c"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.CodeAnalysis.Common-5.9.0-ThirdPartyNotices.rtf",
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-License.txt"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/License.txt"
+  },
+  {
+    "package": "Microsoft.CodeAnalysis.Scripting.Common/5.9.0",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/roslyn",
+      "branch": "release/insiders",
+      "commit": "35d9211b841e7613c1d2f8f5af6d628ace696c4c"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.CodeAnalysis.Common-5.9.0-ThirdPartyNotices.rtf",
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-License.txt"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/roslyn/35d9211b841e7613c1d2f8f5af6d628ace696c4c/License.txt"
+  },
+  {
+    "package": "Microsoft.Extensions.DependencyInjection.Abstractions/10.0.12",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/dotnet",
+      "commit": "95017c711e6afc1085133d440e42b4bd78155701"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.Extensions.DependencyInjection.Abstractions-10.0.12-THIRD-PARTY-NOTICES.TXT",
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-License.txt"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/dotnet/95017c711e6afc1085133d440e42b4bd78155701/LICENSE.TXT"
+  },
+  {
+    "package": "Microsoft.Extensions.Logging.Abstractions/10.0.12",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/dotnet",
+      "commit": "95017c711e6afc1085133d440e42b4bd78155701"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.Extensions.DependencyInjection.Abstractions-10.0.12-THIRD-PARTY-NOTICES.TXT",
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-License.txt"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/dotnet/95017c711e6afc1085133d440e42b4bd78155701/LICENSE.TXT"
+  },
+  {
+    "package": "Microsoft.IO.RecyclableMemoryStream/3.0.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Microsoft/Microsoft.IO.RecyclableMemoryStream",
+      "commit": "e29a28387da9018fa9605a1dcb3f7a0435aa9974"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.IO.RecyclableMemoryStream-3.0.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Microsoft/Microsoft.IO.RecyclableMemoryStream/e29a28387da9018fa9605a1dcb3f7a0435aa9974/LICENSE"
+  },
+  {
+    "package": "Microsoft.NET.ILLink.Tasks/10.0.12",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/dotnet",
+      "commit": "95017c711e6afc1085133d440e42b4bd78155701"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.Extensions.DependencyInjection.Abstractions-10.0.12-THIRD-PARTY-NOTICES.TXT",
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-License.txt"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/dotnet/95017c711e6afc1085133d440e42b4bd78155701/LICENSE.TXT"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Core/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.android-arm/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.android-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.android-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.ios-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.ios-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.linux-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.linux-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.osx-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.osx-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.win-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime.win-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4.Runtime/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.LZ4/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Core/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.android-arm/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.android-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.android-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.ios-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.ios-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.linux-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.linux-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.osx-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.osx-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.win-arm64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime.win-x64/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard.Runtime/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions.Zstandard/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "NativeCompressions/0.6.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/NativeCompressions",
+      "commit": "fcae0159a8c4ff53209f39cea6f303c39318bc39"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/NativeCompressions.LZ4.Core-0.6.1-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/NativeCompressions/fcae0159a8c4ff53209f39cea6f303c39318bc39/LICENSE"
+  },
+  {
+    "package": "ObservableCollections/3.3.4",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/ObservableCollections",
+      "commit": "094f7df69f4b2f805788f14f9d389694f687b1a1"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/ObservableCollections-3.3.4-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/ObservableCollections/094f7df69f4b2f805788f14f9d389694f687b1a1/LICENSE"
+  },
+  {
+    "package": "Portable.BouncyCastle/1.9.0",
+    "license": "https://www.bouncycastle.org/csharp/licence.html",
+    "licenseType": "url",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/novotnyllc/bc-csharp",
+      "commit": "0f827cc3e74a8f45669fba5c525adacd6b897503"
+    },
+    "authors": "Claire Novotny",
+    "copyright": "© 2000-2021 Legion of the Bouncy Castle Inc.",
+    "notices": [
+      "licenses/Portable.BouncyCastle-1.9.0-crypto-License.html"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/novotnyllc/bc-csharp/0f827cc3e74a8f45669fba5c525adacd6b897503/crypto/License.html"
+  },
+  {
+    "package": "SixLabors.ImageSharp/4.1.2",
+    "license": "Apache-2.0",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/SixLabors/ImageSharp",
+      "commit": "dee414097e4be7bb35ef0209cf96bd0b61a7133a"
+    },
+    "authors": "Six Labors and contributors",
+    "copyright": "Copyright © Six Labors",
+    "notices": [
+      "licenses/SixLabors.ImageSharp-4.1.2-LICENSE",
+      "licenses/Apache-2.0.txt"
+    ]
+  },
+  {
+    "package": "SkiaSharp.NativeAssets.Linux/3.119.4",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.4",
+      "commit": "f568ac94dd768ef9a2f593537cfde2dd0d348ef5"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt",
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "package": "SkiaSharp.NativeAssets.macOS/3.119.4",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.4",
+      "commit": "f568ac94dd768ef9a2f593537cfde2dd0d348ef5"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt",
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "package": "SkiaSharp.NativeAssets.WebAssembly/3.119.4",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.4",
+      "commit": "f568ac94dd768ef9a2f593537cfde2dd0d348ef5"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt",
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "package": "SkiaSharp.NativeAssets.Win32/3.119.4",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.4",
+      "commit": "f568ac94dd768ef9a2f593537cfde2dd0d348ef5"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt",
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-THIRD-PARTY-NOTICES.txt"
+    ]
+  },
+  {
+    "package": "SkiaSharp/3.119.4",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://go.microsoft.com/fwlink/?linkid=868515",
+      "branch": "release/3.119.4",
+      "commit": "f568ac94dd768ef9a2f593537cfde2dd0d348ef5"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/HarfBuzzSharp.NativeAssets.Linux-8.3.1.3-LICENSE.txt"
+    ]
+  },
+  {
+    "package": "StageKit.Primitives/0.4.0",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "Git",
+      "url": "https://github.com/sn4k3/StageKit",
+      "branch": "refs/heads/main",
+      "commit": "4ec6307ad97fd3d6df6e0165cd358544f5352553"
+    },
+    "authors": "Tiago Conceição",
+    "copyright": "Copyright 2026-2026 © PTRTECH",
+    "notices": [
+      "licenses/EmguExtensions-0.1.9-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/sn4k3/StageKit/4ec6307ad97fd3d6df6e0165cd358544f5352553/LICENSE"
+  },
+  {
+    "package": "StageKit.Runtime/0.4.0",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "Git",
+      "url": "https://github.com/sn4k3/StageKit",
+      "branch": "refs/heads/main",
+      "commit": "4ec6307ad97fd3d6df6e0165cd358544f5352553"
+    },
+    "authors": "Tiago Conceição",
+    "copyright": "Copyright 2026-2026 © PTRTECH",
+    "notices": [
+      "licenses/EmguExtensions-0.1.9-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/sn4k3/StageKit/4ec6307ad97fd3d6df6e0165cd358544f5352553/LICENSE"
+  },
+  {
+    "package": "StageKit/0.4.0",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "Git",
+      "url": "https://github.com/sn4k3/StageKit",
+      "branch": "refs/heads/main",
+      "commit": "4ec6307ad97fd3d6df6e0165cd358544f5352553"
+    },
+    "authors": "Tiago Conceição",
+    "copyright": "Copyright 2026-2026 © PTRTECH",
+    "notices": [
+      "licenses/EmguExtensions-0.1.9-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/sn4k3/StageKit/4ec6307ad97fd3d6df6e0165cd358544f5352553/LICENSE"
+  },
+  {
+    "package": "System.IO.Hashing/10.0.12",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/dotnet/dotnet",
+      "commit": "95017c711e6afc1085133d440e42b4bd78155701"
+    },
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/Microsoft.Extensions.DependencyInjection.Abstractions-10.0.12-THIRD-PARTY-NOTICES.TXT",
+      "licenses/Microsoft.CodeAnalysis.Analyzers-5.9.0-1.26328.17-License.txt"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/dotnet/dotnet/95017c711e6afc1085133d440e42b4bd78155701/LICENSE.TXT"
+  },
+  {
+    "package": "System.Reflection.TypeExtensions/4.7.0",
+    "license": "MIT",
+    "licenseType": "expression",
+    "authors": "Microsoft",
+    "copyright": "© Microsoft Corporation. All rights reserved.",
+    "notices": [
+      "licenses/System.Reflection.TypeExtensions-4.7.0-LICENSE.TXT",
+      "licenses/System.Reflection.TypeExtensions-4.7.0-THIRD-PARTY-NOTICES.TXT"
+    ]
+  },
+  {
+    "package": "Tmds.DBus.Protocol/0.94.1",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/tmds/Tmds.DBus.git",
+      "branch": "refs/heads/main",
+      "commit": "b4a7fed0b878f74cb54f7cca84d2889af4e596ba"
+    },
+    "authors": "Tom Deseyn",
+    "copyright": "Tom Deseyn",
+    "notices": [
+      "licenses/Tmds.DBus.Protocol-0.94.1-COPYING"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/tmds/Tmds.DBus/b4a7fed0b878f74cb54f7cca84d2889af4e596ba/COPYING"
+  },
+  {
+    "package": "UVtools.Core/7.0.0",
+    "license": "AGPL-3.0-or-later",
+    "licenseType": "expression",
+    "source": {
+      "type": "Git",
+      "url": "https://github.com/sn4k3/UVtools",
+      "commit": "4774b6b40838094167998d307aea2a713dcc40dc"
+    },
+    "authors": "Tiago Conceição, sn4k3",
+    "copyright": "Copyright 2020-2026 © PTRTECH",
+    "notices": [
+      "licenses/UVtools.Core-7.0.0-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/sn4k3/UVtools/4774b6b40838094167998d307aea2a713dcc40dc/LICENSE"
+  },
+  {
+    "package": "ZLinq/1.5.6",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "type": "git",
+      "url": "https://github.com/Cysharp/ZLinq",
+      "branch": "refs/heads/main",
+      "commit": "f69303ff08a2c3678d1362bd5abdc24adab3ab8c"
+    },
+    "authors": "Cysharp",
+    "copyright": "© Cysharp, Inc.",
+    "notices": [
+      "licenses/ZLinq-1.5.6-LICENSE"
+    ],
+    "licenseSource": "https://raw.githubusercontent.com/Cysharp/ZLinq/f69303ff08a2c3678d1362bd5abdc24adab3ab8c/LICENSE"
+  },
+  {
+    "package": ".NET Runtime win-x64/10.0.12",
+    "license": "MIT",
+    "licenseType": "expression",
+    "source": {
+      "url": "https://github.com/dotnet/dotnet",
+      "commit": "95017c711e6afc1085133d440e42b4bd78155701"
+    },
+    "notices": [
+      "licenses/System.Reflection.TypeExtensions-4.7.0-LICENSE.TXT",
+      "licenses/Microsoft.Extensions.DependencyInjection.Abstractions-10.0.12-THIRD-PARTY-NOTICES.TXT"
+    ]
+  }
+]

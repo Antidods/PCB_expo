@@ -6,7 +6,7 @@ namespace PcbExpo.Core;
 /// <summary>Читает отверстия и прямые пазы Excellon без растеризации геометрии.</summary>
 public sealed partial class ExcellonDrillService
 {
-    public IReadOnlyList<DxfContour> Read(string path)
+    public IReadOnlyList<DxfContour> Read(string path, bool allowEmpty = false)
     {
         var contours = new List<DxfContour>();
         var tools = new Dictionary<int, double>();
@@ -109,7 +109,7 @@ public sealed partial class ExcellonDrillService
             }
         }
         if (!header || !body || !finished) throw Error("Неполный Excellon: нужны M48, конец заголовка и M30.");
-        if (contours.Count == 0) throw Error("В файле нет отверстий или поддерживаемых прямых пазов.");
+        if (contours.Count == 0 && !allowEmpty) throw Error("В файле нет отверстий или поддерживаемых прямых пазов.");
         return contours;
 
         InvalidDataException Error(string message) => new($"{Path.GetFileName(path)}, строка {lineNumber}: {message} Неподдерживаемые команды не пропускаются при экспорте для CNC.");

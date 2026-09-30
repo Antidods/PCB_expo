@@ -11,14 +11,18 @@ internal sealed class DxfPreviewControl : Control
     private IReadOnlyList<(DxfContour Contour, IReadOnlyList<PointMm> Points)> _shapes = [];
     private RectMm _extent = new(0, 0, 1, 1);
     private RectMm? _blank;
+    private IReadOnlyList<RectMm> _boards = [];
     private double _zoom = 1;
     private Vector _pan;
     private Point? _pointer;
 
-    public void SetContours(IReadOnlyList<DxfContour> contours, RectMm? blank = null)
+    public DxfPreviewControl() => ClipToBounds = true;
+
+    public void SetContours(IReadOnlyList<DxfContour> contours, RectMm? blank = null, IReadOnlyList<RectMm>? boards = null)
     {
         _shapes = contours.Select(c => (c, DxfGeometry.Points(c))).ToArray();
         _blank = blank;
+        _boards = boards ?? [];
         var points = _shapes.SelectMany(s => s.Points).ToList();
         if (blank is { } bounds) { points.Add(new(bounds.X, bounds.Y)); points.Add(new(bounds.Right, bounds.Top)); }
         if (points.Count > 0)
@@ -32,16 +36,23 @@ internal sealed class DxfPreviewControl : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        context.FillRectangle(Brushes.Black, Bounds);
+        var viewport = new Rect(Bounds.Size);
+        using var clip = context.PushClip(viewport);
+        context.FillRectangle(Brushes.WhiteSmoke, viewport);
         var scale = Math.Max(0.001, Math.Min((Bounds.Width - 32) / _extent.Width, (Bounds.Height - 32) / _extent.Height)) * _zoom;
         Point Screen(PointMm p) => new((Bounds.Width - _extent.Width * scale) / 2 + (p.X - _extent.X) * scale + _pan.X,
             (Bounds.Height - _extent.Height * scale) / 2 + (_extent.Top - p.Y) * scale + _pan.Y);
         if (_blank is { } blank)
             context.DrawRectangle(null, new Pen(Brushes.Gray, 1), new Rect(Screen(new(blank.X, blank.Top)),
                 new Size(blank.Width * scale, blank.Height * scale)));
+        foreach (var board in _boards)
+            context.DrawRectangle(null, new Pen(Brushes.DimGray, 1), new Rect(Screen(new(board.X, board.Top)),
+                new Size(board.Width * scale, board.Height * scale)));
         foreach (var (contour, points) in _shapes)
         {
-            var pen = new Pen(contour.Layer.StartsWith("DRILL", StringComparison.Ordinal) ? Brushes.DeepSkyBlue : Brushes.LimeGreen, 1.4);
+            var color = contour.Layer is "BLANK" or "MECHANICAL_HOLES" ? Brushes.SlateGray :
+                contour.Layer.StartsWith("DRILL", StringComparison.Ordinal) ? Brushes.DodgerBlue : Brushes.ForestGreen;
+            var pen = new Pen(color, 1.4);
             if (contour is DxfCircle circle)
             {
                 var center = Screen(circle.Center);

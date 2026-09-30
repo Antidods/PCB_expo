@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace PcbExpo.Core;
 
-public enum ExposureMode { TopCopper, BottomCopper, TopSolderMask, BottomSolderMask, Registration, Calibration, ExposureCalibration }
+public enum ExposureMode { TopCopper, BottomCopper, TopSolderMask, BottomSolderMask, Registration, Calibration, ExposureCalibration, TopStencil, BottomStencil }
 public enum PlacementMode { Single, FillBlank }
 public enum BottomPhysicalFlip { VerticalAxis }
 
@@ -43,12 +43,14 @@ public sealed class ExposureSettings
 {
     public double CopperSeconds { get; set; }
     public double SolderMaskSeconds { get; set; }
+    public double StencilSeconds { get; set; }
     public double RegistrationSeconds { get; set; }
     public double CalibrationSeconds { get; set; }
     public double ProcessCalibrationSeconds { get; set; }
     public byte? LightPwm { get; set; }
     public double CopperCompensationMm { get; set; }
     public double SolderMaskCompensationMm { get; set; }
+    public double StencilCompensationMm { get; set; }
 }
 
 public sealed class ProjectModel
@@ -69,10 +71,13 @@ public sealed class ProjectModel
         [ExposureMode.TopCopper] = new(),
         [ExposureMode.BottomCopper] = new(),
         [ExposureMode.TopSolderMask] = new() { Invert = true },
-        [ExposureMode.BottomSolderMask] = new() { Invert = true }
+        [ExposureMode.BottomSolderMask] = new() { Invert = true },
+        [ExposureMode.TopStencil] = new() { Invert = true },
+        [ExposureMode.BottomStencil] = new() { Invert = true }
     };
     public ExposureSettings Exposure { get; set; } = new();
     public ExposureCalibrationSettings ProcessCalibration { get; set; } = new();
+    public CncExportSettings CncExport { get; set; } = new();
     public bool AntiAliasing { get; set; }
 
     [JsonIgnore]
@@ -85,6 +90,8 @@ public sealed class ProjectModel
         ExposureMode.BottomCopper => GerberLayerKind.BottomCopper,
         ExposureMode.TopSolderMask => GerberLayerKind.TopSolderMask,
         ExposureMode.BottomSolderMask => GerberLayerKind.BottomSolderMask,
+        ExposureMode.TopStencil => GerberLayerKind.TopPasteMask,
+        ExposureMode.BottomStencil => GerberLayerKind.BottomPasteMask,
         _ => GerberLayerKind.Unknown
     };
 
@@ -92,6 +99,7 @@ public sealed class ProjectModel
     {
         ExposureMode.TopCopper or ExposureMode.BottomCopper => Exposure.CopperSeconds,
         ExposureMode.TopSolderMask or ExposureMode.BottomSolderMask => Exposure.SolderMaskSeconds,
+        ExposureMode.TopStencil or ExposureMode.BottomStencil => Exposure.StencilSeconds,
         ExposureMode.Registration => Exposure.RegistrationSeconds,
         ExposureMode.Calibration => Exposure.CalibrationSeconds,
         ExposureMode.ExposureCalibration => Exposure.ProcessCalibrationSeconds,
@@ -102,8 +110,10 @@ public sealed class ProjectModel
     {
         ExposureMode.TopCopper or ExposureMode.BottomCopper => Exposure.CopperCompensationMm,
         ExposureMode.TopSolderMask or ExposureMode.BottomSolderMask => Exposure.SolderMaskCompensationMm,
+        ExposureMode.TopStencil or ExposureMode.BottomStencil => Exposure.StencilCompensationMm,
         _ => 0
     };
 
-    public bool IsBottom => Mode is ExposureMode.BottomCopper or ExposureMode.BottomSolderMask;
+    public bool IsStencil => Mode is ExposureMode.TopStencil or ExposureMode.BottomStencil;
+    public bool IsBottom => Mode is ExposureMode.BottomCopper or ExposureMode.BottomSolderMask or ExposureMode.BottomStencil;
 }

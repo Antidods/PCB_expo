@@ -31,7 +31,8 @@ internal static class DiagnosticCli
         if (args.Length < 3) return;
         var project = new ProjectModel { TemplatePath = template, GerberSourcePath = args[1] };
         project.LayerPaths = package.Layers.Where(x => x.Kind is GerberLayerKind.TopCopper or
-            GerberLayerKind.BottomCopper or GerberLayerKind.TopSolderMask or GerberLayerKind.BottomSolderMask)
+            GerberLayerKind.BottomCopper or GerberLayerKind.TopSolderMask or GerberLayerKind.BottomSolderMask or
+            GerberLayerKind.TopPasteMask or GerberLayerKind.BottomPasteMask)
             .ToDictionary(x => x.Kind, x => x.Path);
         var coord = new CoordinateTransformService();
         var layout = new BlankLayoutService();
@@ -44,6 +45,11 @@ internal static class DiagnosticCli
             foreach (var mode in Enum.GetValues<ExposureMode>())
             {
                 project.Mode = mode;
+                if (project.CurrentLayerKind != GerberLayerKind.Unknown && !project.LayerPaths.ContainsKey(project.CurrentLayerKind))
+                {
+                    Console.WriteLine($"{mode}: skipped, no assigned {project.CurrentLayerKind} layer");
+                    continue;
+                }
                 using var rendered = rasterService.Build(project, info, RasterGeometry.Preview(info), package.BoardBoundsMm);
                 var previewPath = Path.Combine(folder, $"{mode}.png");
                 CvInvoke.Imwrite(previewPath, rendered.Image);

@@ -4,7 +4,9 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform.Storage;
+using Avalonia.Threading;
 using Emgu.CV;
+using System.Text.Json;
 using PcbExpo.Core;
 using CorePlacementMode = PcbExpo.Core.PlacementMode;
 
@@ -25,6 +27,12 @@ public sealed class MainWindow : Window
     private readonly BlankLayoutService _layout = new();
     private readonly ExposureRasterService _raster;
     private readonly PreviewControl _preview = new();
+    private readonly Border _previewProgress = new()
+    {
+        IsVisible = false, HorizontalAlignment = HorizontalAlignment.Right, VerticalAlignment = VerticalAlignment.Top,
+        Margin = new Thickness(12), Padding = new Thickness(10, 6), Background = Brushes.WhiteSmoke,
+        CornerRadius = new CornerRadius(4), Child = new TextBlock { Text = "Обновление предпросмотра…", Foreground = Brushes.Black }
+    };
     private readonly TextBlock _status = new() { TextWrapping = TextWrapping.Wrap };
     private readonly TextBlock _summary = new() { TextWrapping = TextWrapping.Wrap };
     private readonly ListBox _files = new() { Height = 145 };
@@ -40,6 +48,11 @@ public sealed class MainWindow : Window
         TextWrapping = TextWrapping.Wrap, IsVisible = false
     };
     private readonly StackPanel _processCalibrationPanel = new() { Spacing = 6, IsVisible = false };
+    private readonly TextBlock _stencilHint = new()
+    {
+        Text = "Трафарет из фотополимера: белая заготовка, тёмные окна PasteMaskLayer и центровочные отверстия. После засветки снимите трафарет с FEP, отмойте и досветите. Время задаётся отдельно для материала и толщины.",
+        TextWrapping = TextWrapping.Wrap, IsVisible = false
+    };
     private bool _exportingCalibration;
     private readonly CheckBox _invert = new() { Content = "Инверсия" };
     private readonly CheckBox _mirrorX = new() { Content = "Зеркалирование X" };
@@ -53,12 +66,16 @@ public sealed class MainWindow : Window
     private bool _syncing;
     private int _boardCount;
     private IReadOnlyList<RectMm> _positions = [];
+    private readonly DispatcherTimer _previewTimer = new() { Interval = TimeSpan.FromMilliseconds(180) };
+    private readonly SemaphoreSlim _previewBuild = new(1, 1);
+    private int _previewGeneration;
+    private bool _closed;
 
     public MainWindow()
     {
         _raster = new ExposureRasterService(_coordinates, _layout,
             new PanelizationService(_layout), new GerberRenderService(), new ExposureMaskService());
-        Title = "PCB Expo | HALOT-MAGE S";
+        Title = $"PCB Expo {AppVersion.Current} | HALOT-MAGE S";
         Width = 1560;
         Height = 940;
         MinWidth = 1100;
@@ -66,13 +83,19 @@ public sealed class MainWindow : Window
         var root = new Grid { ColumnDefinitions = new ColumnDefinitions("365,*,275") };
         Content = root;
         var editor = new StackPanel { Spacing = 7, Margin = new Thickness(12) };
+        editor.Children.Add(new Image
+        {
+            Source = AppBranding.Logo, Height = 90, Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Center, Margin = new Thickness(8, 0, 8, 6)
+        });
         var editorScroll = new ScrollViewer { Content = editor };
         Grid.SetColumn(editorScroll, 0);
         root.Children.Add(editorScroll);
-        var center = new Grid { RowDefinitions = new RowDefinitions("*,Auto") };
+        var center = new Grid { RowDefinitions = new RowDefinitions("*,Auto"), ClipToBounds = true };
         Grid.SetColumn(center, 1);
         root.Children.Add(center);
         center.Children.Add(_preview);
+        center.Children.Add(_previewProgress);
         var hint = new TextBlock
         {
             Text = "Белое на preview означает, что LCD пропускает UV. Колесо: масштаб; правая кнопка: сдвиг; левая кнопка: перемещение платы в режиме «Одна плата».",
@@ -104,6 +127,7 @@ public sealed class MainWindow : Window
         };
         editor.Children.Add(_mode);
         editor.Children.Add(_calibrationHint);
+        editor.Children.Add(_stencilHint);
         editor.Children.Add(Button("Справка по калибровке", async () => await new CalibrationHelpWindow().ShowDialog(this)));
         _processCalibrationPanel.Children.Add(new TextBlock
         {
@@ -234,7 +258,7 @@ public sealed class MainWindow : Window
             RebuildPreview();
         };
         editor.Children.Add(_aa);
-        editor.Children.Add(Button("Показать preview в разрешении LCD", () => RebuildPreview(true)));
+        editor.Children.Add(Button("Обновить предпросмотр в разрешении LCD", RebuildPreview));
 
         Section(right, "Параметры принтера и проекта");
         right.Children.Add(_summary);
@@ -253,6 +277,7 @@ public sealed class MainWindow : Window
         right.Children.Add(Button("Экспорт контуров в DXF", async () => await ExportDxf()));
         Section(right, "Состояние и предупреждения");
         right.Children.Add(_status);
+        right.Children.Add(Button("О программе", async () => await new AboutWindow().ShowDialog(this)));
 
         _preview.PositionChanged = (position, commit) =>
         {
@@ -260,7 +285,12 @@ public sealed class MainWindow : Window
             _y.Text = UiText.Number(position.Y);
             if (commit) RebuildPreview();
         };
-        Closed += (_, _) => { _preview.ClearPreview(); _package?.Dispose(); };
+        _previewTimer.Tick += async (_, _) => { _previewTimer.Stop(); await BuildPreviewAsync(); };
+        Closed += (_, _) =>
+        {
+            _closed = true; _previewGeneration++; _previewTimer.Stop();
+            _preview.ClearPreview(); _package?.Dispose();
+        };
         _project.Exposure = _exposureProfiles.Load();
         _project.TemplatePath = ApplicationPaths.DefaultTemplate;
         if (File.Exists(_project.TemplatePath)) LoadTemplate(_project.TemplatePath);
@@ -340,6 +370,7 @@ public sealed class MainWindow : Window
         {
             case ExposureMode.TopCopper or ExposureMode.BottomCopper: _project.Exposure.CopperSeconds = value; break;
             case ExposureMode.TopSolderMask or ExposureMode.BottomSolderMask: _project.Exposure.SolderMaskSeconds = value; break;
+            case ExposureMode.TopStencil or ExposureMode.BottomStencil: _project.Exposure.StencilSeconds = value; break;
             case ExposureMode.Registration: _project.Exposure.RegistrationSeconds = value; break;
             case ExposureMode.Calibration: _project.Exposure.CalibrationSeconds = value; break;
             case ExposureMode.ExposureCalibration: _project.Exposure.ProcessCalibrationSeconds = value; break;
@@ -353,6 +384,8 @@ public sealed class MainWindow : Window
             _project.Exposure.CopperCompensationMm = value;
         else if (_project.Mode is ExposureMode.TopSolderMask or ExposureMode.BottomSolderMask)
             _project.Exposure.SolderMaskCompensationMm = value;
+        else if (_project.IsStencil)
+            _project.Exposure.StencilCompensationMm = value;
         _exposureProfiles.Save(_project.Exposure);
     }
 
@@ -365,13 +398,15 @@ public sealed class MainWindow : Window
         _mode.SelectedItem = _mode.ItemsSource?.Cast<DisplayChoice<ExposureMode>>()
             .FirstOrDefault(x => x.Value == _project.Mode);
         _calibrationHint.IsVisible = _project.Mode == ExposureMode.Calibration;
+        _stencilHint.IsVisible = _project.IsStencil;
+        _invert.IsEnabled = !_project.IsStencil;
         var processCalibration = _project.Mode == ExposureMode.ExposureCalibration;
         _processCalibrationPanel.IsVisible = processCalibration;
         _compensation.IsEnabled = !processCalibration;
         _mirrorX.IsEnabled = _mirrorY.IsEnabled = _aa.IsEnabled = !processCalibration;
         _placement.SelectedItem = _placement.ItemsSource?.Cast<DisplayChoice<CorePlacementMode>>()
             .FirstOrDefault(x => x.Value == _project.Panelization.Mode);
-        _invert.IsChecked = _project.CurrentTransform.Invert;
+        _invert.IsChecked = _project.IsStencil || _project.CurrentTransform.Invert;
         _mirrorX.IsChecked = !processCalibration && _project.CurrentTransform.MirrorX;
         _mirrorY.IsChecked = !processCalibration && _project.CurrentTransform.MirrorY;
         _aa.IsChecked = !processCalibration && _project.AntiAliasing;
@@ -430,7 +465,8 @@ public sealed class MainWindow : Window
                 _project.LayerNames[GerberLayerKind.BoardOutline] = outlines[0].RelativePath;
             }
             foreach (var kind in new[] { GerberLayerKind.TopCopper, GerberLayerKind.BottomCopper,
-                         GerberLayerKind.TopSolderMask, GerberLayerKind.BottomSolderMask })
+                         GerberLayerKind.TopSolderMask, GerberLayerKind.BottomSolderMask,
+                         GerberLayerKind.TopPasteMask, GerberLayerKind.BottomPasteMask })
             {
                 var matching = package.Layers.Where(x => x.Kind == kind).ToArray();
                 if (matching.Length != 1) continue;
@@ -453,12 +489,16 @@ public sealed class MainWindow : Window
         catch (Exception error) { ShowError(error); return false; }
     }
 
-    private void RebuildPreview(bool fullResolution = false)
+    private void RebuildPreview()
     {
+        _previewGeneration++;
+        _previewTimer.Stop();
+        if (_closed) return;
         if (_printer is null) { UpdateSummary(); return; }
         if (_package is null && _project.Mode is not (ExposureMode.Registration or ExposureMode.Calibration or ExposureMode.ExposureCalibration))
         {
             _preview.ClearPreview();
+            _previewProgress.IsVisible = false;
             _boardCount = 0;
             _positions = [];
             _status.Text = "Импортируйте Gerber, чтобы показать экспозицию платы.";
@@ -467,25 +507,58 @@ public sealed class MainWindow : Window
         }
         try
         {
-            var native = fullResolution || _project.Mode == ExposureMode.ExposureCalibration;
-            var raster = native ? RasterGeometry.Native(_printer) : RasterGeometry.Preview(_printer);
-            using var result = _raster.Build(_project, _printer, raster, _package?.BoardBoundsMm);
-            var image = CvInvoke.Imencode(".png", result.Image);
-            using var stream = new MemoryStream(image);
-            var bitmap = new Bitmap(stream);
-            _preview.SetPreview(bitmap, _printer, _project, result.BlankOnLcd, result.Boards.ToArray());
-            _boardCount = result.Boards.Count;
-            _positions = result.Boards.ToArray();
-            _status.Text = native ? "Маска в разрешении LCD сформирована и показана в preview." :
-                "Preview обновлён. Белое означает, что LCD пропускает UV.";
+            _positions = _project.CurrentLayerKind != GerberLayerKind.Unknown && _package?.BoardBoundsMm is { } bounds
+                ? new PanelizationService(_layout).LayoutPhysical(_project, bounds.Width, bounds.Height) : [];
+            _boardCount = _positions.Count;
+            UpdateSummary();
         }
         catch (Exception error)
         {
+            _preview.ClearPreview(); _previewProgress.IsVisible = false;
+            _positions = []; _boardCount = 0; ShowError(error); return;
+        }
+        _previewProgress.IsVisible = true;
+        _status.Text = "Построение предпросмотра в разрешении LCD…";
+        _previewTimer.Start();
+    }
+
+    private async Task BuildPreviewAsync()
+    {
+        var generation = _previewGeneration;
+        if (_closed || _printer is not { } printer) return;
+        // Capture mutable settings on the UI thread; background rendering never reads the active project.
+        var project = JsonSerializer.Deserialize<ProjectModel>(JsonSerializer.Serialize(_project, LocalStorage.JsonOptions), LocalStorage.JsonOptions)!;
+        project.LayerPaths = new Dictionary<GerberLayerKind, string>(_project.LayerPaths);
+        var bounds = _package?.BoardBoundsMm;
+        await _previewBuild.WaitAsync();
+        try
+        {
+            if (_closed || generation != _previewGeneration) return;
+            var frame = await Task.Run(() =>
+            {
+                using var result = _raster.Build(project, printer, RasterGeometry.Native(printer), bounds);
+                var bitmap = new Bitmap(Avalonia.Platform.PixelFormats.Gray8, Avalonia.Platform.AlphaFormat.Opaque,
+                    result.Image.DataPointer, new PixelSize(result.Image.Width, result.Image.Height), new Vector(96, 96), result.Image.Step);
+                return (Bitmap: bitmap, Blank: result.BlankOnLcd, Boards: result.Boards.ToArray());
+            });
+            if (_closed || generation != _previewGeneration) { frame.Bitmap.Dispose(); return; }
+            _preview.SetPreview(frame.Bitmap, printer, _project, frame.Blank, frame.Boards);
+            _previewProgress.IsVisible = false;
+            _boardCount = frame.Boards.Length;
+            _positions = frame.Boards;
+            _status.Text = $"Предпросмотр: {printer.ResolutionX} × {printer.ResolutionY} px (разрешение LCD). Белое пропускает UV.";
+        }
+        catch (Exception error)
+        {
+            if (_closed || generation != _previewGeneration) return;
             _preview.ClearPreview();
+            _previewProgress.IsVisible = false;
             _boardCount = 0;
             _positions = [];
             ShowError(error);
         }
+        finally { _previewBuild.Release(); }
+        if (_closed || generation != _previewGeneration) return;
         UpdateSummary();
     }
 
@@ -629,7 +702,7 @@ public sealed class MainWindow : Window
             using var result = _raster.Build(_project, _printer, RasterGeometry.Native(_printer), _package?.BoardBoundsMm);
             var output = _template.ExportAndVerify(_project.TemplatePath, path.Path.LocalPath,
                 result.Image, _project.CurrentExposureSeconds, _project.Exposure.LightPwm);
-            _log.Write($"Export={output.Path}; mode={_project.Mode}; blank={_project.Blank.WidthMm}x{_project.Blank.HeightMm}; boards={result.Boards.Count}; positions={string.Join(';', result.Boards)}; mirror={_project.CurrentTransform.MirrorX},{_project.CurrentTransform.MirrorY}; invert={_project.CurrentTransform.Invert}; exposure={_project.CurrentExposureSeconds}; compensation={_project.CurrentCompensationMm}; diffPixels={output.DifferentPixels}");
+            _log.Write($"Export={output.Path}; mode={_project.Mode}; blank={_project.Blank.WidthMm}x{_project.Blank.HeightMm}; boards={result.Boards.Count}; positions={string.Join(';', result.Boards)}; mirror={_project.CurrentTransform.MirrorX},{_project.CurrentTransform.MirrorY}; invert={_project.IsStencil || _project.CurrentTransform.Invert}; exposure={_project.CurrentExposureSeconds}; compensation={_project.CurrentCompensationMm}; diffPixels={output.DifferentPixels}");
             _status.Text = $"Экспорт и повторное чтение успешны: {output.Path}";
         }
         catch (Exception error) { ShowError(error); }

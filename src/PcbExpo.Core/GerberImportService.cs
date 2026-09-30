@@ -9,7 +9,7 @@ namespace PcbExpo.Core;
 public enum GerberLayerKind
 {
     Unknown, TopCopper, BottomCopper, TopSolderMask, BottomSolderMask,
-    BoardOutline, Drill, Other
+    BoardOutline, Drill, Other, TopPasteMask, BottomPasteMask
 }
 
 public sealed record GerberLayer(string Path, string Name, GerberLayerKind Kind, string RelativePath)
@@ -105,6 +105,8 @@ public sealed class GerberImportService
         if (ext == ".gbl" || name.Contains("bottomlayer") || name.Contains("bottom_copper")) return GerberLayerKind.BottomCopper;
         if (ext == ".gts" || name.Contains("topsoldermask") || name.Contains("top_solder_mask")) return GerberLayerKind.TopSolderMask;
         if (ext == ".gbs" || name.Contains("bottomsoldermask") || name.Contains("bottom_solder_mask")) return GerberLayerKind.BottomSolderMask;
+        if (ext == ".gtp" || name.Contains("toppastemask") || name.Contains("top_paste") || name.Contains("f_paste")) return GerberLayerKind.TopPasteMask;
+        if (ext == ".gbp" || name.Contains("bottompastemask") || name.Contains("bottom_paste") || name.Contains("b_paste")) return GerberLayerKind.BottomPasteMask;
         if (name.Contains("silkscreen") || name.Contains("paste") || name.Contains("document")) return GerberLayerKind.Other;
         return GerberLayerKind.Unknown;
     }

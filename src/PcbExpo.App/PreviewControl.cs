@@ -25,6 +25,8 @@ public sealed class PreviewControl : Control
 
     public Action<PointMm, bool>? PositionChanged { get; set; }
 
+    public PreviewControl() => ClipToBounds = true;
+
     public void SetPreview(Bitmap bitmap, PrinterInfo printer, ProjectModel project,
         RectMm blankOnLcd, IReadOnlyList<RectMm> boards)
     {
@@ -32,8 +34,7 @@ public sealed class PreviewControl : Control
         _bitmap = bitmap;
         _printer = printer;
         _project = project;
-        RenderOptions.SetBitmapInterpolationMode(this, project.Mode == ExposureMode.ExposureCalibration
-            ? BitmapInterpolationMode.HighQuality : BitmapInterpolationMode.None);
+        RenderOptions.SetBitmapInterpolationMode(this, BitmapInterpolationMode.HighQuality);
         _blankOnLcd = blankOnLcd;
         _boards = boards;
         InvalidateVisual();
@@ -52,7 +53,9 @@ public sealed class PreviewControl : Control
     public override void Render(DrawingContext context)
     {
         base.Render(context);
-        context.FillRectangle(Brushes.Black, Bounds);
+        var viewport = new Rect(Bounds.Size);
+        using var clip = context.PushClip(viewport);
+        context.FillRectangle(Brushes.WhiteSmoke, viewport);
         if (_bitmap is null || _printer is null || _project is null) return;
         var area = ViewRect();
         context.DrawImage(_bitmap, area);

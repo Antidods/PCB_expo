@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Themes.Fluent;
+using Avalonia.Styling;
+using Avalonia.Controls;
 
 namespace PcbExpo.App;
 
@@ -9,6 +11,11 @@ internal static class Program
     [STAThread]
     public static int Main(string[] args)
     {
+        if (args is ["--version"])
+        {
+            Console.WriteLine($"PCB Expo {AppVersion.Current}");
+            return 0;
+        }
         if (args.Length > 0 && args[0] is "--inspect" or "--check-runtime")
         {
             try
@@ -33,7 +40,15 @@ internal static class Program
 
 public sealed class PcbExpoApplication : Application
 {
-    public override void Initialize() => Styles.Add(new FluentTheme());
+    public override void Initialize()
+    {
+        RequestedThemeVariant = ThemeVariant.Light;
+        Styles.Add(new FluentTheme());
+        Styles.Add(new Style(selector => selector.OfType<Window>())
+        {
+            Setters = { new Setter(Window.IconProperty, AppBranding.Icon) }
+        });
+    }
 
     public override void OnFrameworkInitializationCompleted()
     {

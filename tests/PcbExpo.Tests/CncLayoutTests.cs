@@ -211,6 +211,94 @@ public sealed class CncLayoutTests : IDisposable
         Assert.Contains("42\n-1\n", text);
     }
 
+    [Fact]
+    public void ComposedCncExportsBlankHolesAndSeparateDrillCategoriesInOneFile()
+    {
+        var (project, package) = Layout();
+        var via = Drill("METRIC,LZ", "T01C0.3", "T01\nX110.0Y55.0");
+        var npth = Drill("METRIC,LZ", "T01C2", "T01\nX115.0Y56.0");
+        package.Layers.Add(new(via, "Via.drl", GerberLayerKind.Drill, "Via.drl"));
+        package.Layers.Add(new(npth, "NPTH.drl", GerberLayerKind.Drill, "NPTH.drl"));
+        var result = new CncLayoutService().Build(project, package, project.CncExport);
+        Assert.Equal(10, result.Count);
+        Assert.Single(result, c => c.Layer == "BLANK");
+        Assert.Equal(4, result.Count(c => c.Layer == "MECHANICAL_HOLES"));
+        Assert.Contains(new DxfCircle("DRILL_VIA", new(35, 25), .15), result);
+        Assert.Contains(new DxfCircle("DRILL_BOARD", new(40, 26), 1), result);
+        Assert.Contains(new DxfCircle("DRILL_COMPONENT", new(28, 24), .4), result);
+        Assert.Single(result, c => c.Layer == "DRILL_COMPONENT_SLOTS");
+        var path = Temporary("dxf");
+        new DxfExportService().Export(path, result);
+        var text = File.ReadAllText(path).Replace("\r\n", "\n");
+        foreach (var layer in new[] { "BLANK", "MECHANICAL_HOLES", "BOARD_OUTLINE", "DRILL_BOARD", "DRILL_VIA", "DRILL_COMPONENT" })
+            Assert.Contains($"8\n{layer}\n", text);
+
+        project.CncExport.ComponentHoles = false;
+        Assert.DoesNotContain(new CncLayoutService().Build(project, package, project.CncExport), c => c.Layer.StartsWith("DRILL_COMPONENT"));
+        project.CncExport.DrillKinds["NPTH.drl"] = CncDrillKind.Via;
+        project.CncExport.Vias = false;
+        Assert.Equal(6, new CncLayoutService().Build(project, package, project.CncExport).Count);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ComposedCncKeepsEveryPlacedCopyWhenOnlyComponentDrillsAreSelected(bool bottom)
+    {
+        var (project, package) = Layout();
+        project.Mode = bottom ? ExposureMode.BottomStencil : ExposureMode.TopStencil;
+        project.Blank.WidthMm = 100; project.Blank.HeightMm = 70;
+        project.Panelization = new PanelizationSettings { Mode = PlacementMode.FillBlank, SpacingXmm = 5, SpacingYmm = 5,
+            MarginLeftMm = 20, MarginRightMm = 20, MarginBottomMm = 20, MarginTopMm = 20 };
+        project.CncExport = new CncExportSettings { BlankOutline = false, RegistrationHoles = false,
+            BoardOutlines = false, BoardCutouts = false, BoardHoles = false, Vias = false };
+        var result = new CncLayoutService().Build(project, package, project.CncExport);
+        Assert.Equal(8, result.Count); // Four copies, a hole and slot each.
+        var expected = new PanelizationService(new BlankLayoutService()).LayoutPhysical(project, 20, 10)
+            .Select(board => new PointMm(board.X + (bottom ? 17 : 3), board.Y + 4));
+        Assert.Equal(expected, result.OfType<DxfCircle>().Select(c => c.Center));
+        Assert.All(result, c => Assert.StartsWith("DRILL_COMPONENT", c.Layer));
+    }
+
+    [Fact]
+    public void InternalBoardCutoutsCanBeSelectedWithoutOuterContours()
+    {
+        var (project, package) = Layout();
+        var path = project.LayerPaths[GerberLayerKind.BoardOutline];
+        var text = File.ReadAllText(path).Replace("M02*", "X10500000Y5300000D02*\nX10700000Y5300000D01*\nX10700000Y5500000D01*\nX10500000Y5500000D01*\nX10500000Y5300000D01*\nM02*");
+        File.WriteAllText(path, text);
+        var options = new CncExportSettings { BlankOutline = false, RegistrationHoles = false,
+            BoardOutlines = false, BoardHoles = false, Vias = false, ComponentHoles = false };
+        var cutout = Assert.IsType<DxfPolyline>(Assert.Single(new CncLayoutService().Build(project, package, options)));
+        Assert.Equal("BOARD_CUTOUT", cutout.Layer);
+        Assert.Contains(new PointMm(30, 23), cutout.Points);
+        options.BoardCutouts = false; options.BoardOutlines = true;
+        Assert.Equal("BOARD_OUTLINE", Assert.Single(new CncLayoutService().Build(project, package, options)).Layer);
+    }
+
+    [Fact]
+    public void ValidEmptyDrillFileIsAllowedInCompositionButMalformedDataIsRejected()
+    {
+        var (project, package) = Layout();
+        var empty = Drill("METRIC,LZ", "T01C0.3", "G05\nG90");
+        package.Layers.Add(new(empty, "Via.drl", GerberLayerKind.Drill, "Via.drl"));
+        Assert.Equal(8, new CncLayoutService().Build(project, package, project.CncExport).Count);
+        File.WriteAllText(empty, "M48\nMETRIC,LZ\nT01C0.3\n%\nT01\nX110.0Y55.0\nUNKNOWN\nM30\n");
+        Assert.Throws<InvalidDataException>(() => new CncLayoutService().Build(project, package, project.CncExport));
+    }
+
+    [Fact]
+    public void EmptyCompositionAndMisalignedCategorizedDrillsAreRejected()
+    {
+        var (project, package) = Layout();
+        var options = new CncExportSettings { BlankOutline = false, RegistrationHoles = false, BoardOutlines = false,
+            BoardCutouts = false, BoardHoles = false, Vias = false, ComponentHoles = false };
+        Assert.Throws<InvalidOperationException>(() => new CncLayoutService().Build(project, package, options));
+        var bad = Drill("METRIC,LZ", "T01C1", "T01\nX0.0Y0.0");
+        package.Layers.Add(new(bad, "Via.drl", GerberLayerKind.Drill, "Via.drl"));
+        Assert.Throws<InvalidOperationException>(() => new CncLayoutService().Build(project, package, project.CncExport));
+    }
+
     private (ProjectModel Project, GerberPackage Package) Layout()
     {
         var outline = Temporary("gko");

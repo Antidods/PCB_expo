@@ -66,8 +66,10 @@ public class ExportTests
         }
     }
 
-    [Fact]
-    public void RegistrationMaskRoundTripsThroughRealTemplate()
+    [Theory]
+    [InlineData(ExposureMode.Registration)]
+    [InlineData(ExposureMode.TopStencil)]
+    public void MaskRoundTripsThroughRealTemplate(ExposureMode mode)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "PcbExpo.slnx")))
@@ -84,8 +86,12 @@ public class ExportTests
             var layout = new BlankLayoutService();
             var raster = new ExposureRasterService(coordinates, layout, new PanelizationService(layout),
                 new GerberRenderService(), new ExposureMaskService());
-            var project = new ProjectModel { Mode = ExposureMode.Registration };
-            using var result = raster.Build(project, info, RasterGeometry.Native(info), null);
+            var project = new ProjectModel { Mode = mode };
+            using var package = mode == ExposureMode.TopStencil
+                ? new GerberImportService().Import(Path.Combine(directory.FullName, "Gerber_Cube_PCB_Cube_2026-09-23")) : null;
+            if (package is not null)
+                project.LayerPaths[GerberLayerKind.TopPasteMask] = package.GetLayer(GerberLayerKind.TopPasteMask)!.Path;
+            using var result = raster.Build(project, info, RasterGeometry.Native(info), package?.BoardBoundsMm);
             var check = service.ExportAndVerify(template, output, result.Image, 1.23);
             Assert.Equal((uint)1, check.LayerCount);
             Assert.Equal(0, check.DifferentPixels);

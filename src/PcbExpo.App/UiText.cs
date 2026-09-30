@@ -24,6 +24,8 @@ internal static class UiText
         ExposureMode.BottomCopper => "Медь Bottom",
         ExposureMode.TopSolderMask => "Паяльная маска Top",
         ExposureMode.BottomSolderMask => "Паяльная маска Bottom",
+        ExposureMode.TopStencil => "Паяльный трафарет Top",
+        ExposureMode.BottomStencil => "Паяльный трафарет Bottom",
         ExposureMode.Registration => "Точки центровки",
         ExposureMode.Calibration => "Калибровка",
         ExposureMode.ExposureCalibration => "Калибровка времени и компенсации",
@@ -43,6 +45,8 @@ internal static class UiText
         GerberLayerKind.BottomCopper => "Медь Bottom",
         GerberLayerKind.TopSolderMask => "Паяльная маска Top",
         GerberLayerKind.BottomSolderMask => "Паяльная маска Bottom",
+        GerberLayerKind.TopPasteMask => "Паяльная паста Top (PasteMaskLayer)",
+        GerberLayerKind.BottomPasteMask => "Паяльная паста Bottom (PasteMaskLayer)",
         GerberLayerKind.BoardOutline => "Контур платы",
         GerberLayerKind.Drill => "Сверловка",
         GerberLayerKind.Other => "Другой слой",
@@ -88,7 +92,7 @@ internal static class UiText
             $"Плата X/Y: {Number(project.PcbPositionMm.X)} / {Number(project.PcbPositionMm.Y)} мм\n" +
             $"Позиции на заготовке: {string.Join("; ", positions.Select(p => $"({Number(p.X)}, {Number(p.Y)})"))}\n" +
             $"Зеркалирование X/Y: {YesNo(project.Mode != ExposureMode.ExposureCalibration && project.CurrentTransform.MirrorX)} / {YesNo(project.Mode != ExposureMode.ExposureCalibration && project.CurrentTransform.MirrorY)}\n" +
-            $"Инверсия: {YesNo(project.CurrentTransform.Invert)}\n" +
+            $"Инверсия: {YesNo(project.IsStencil || project.CurrentTransform.Invert)}\n" +
             $"Экспозиция: {Number(project.CurrentExposureSeconds)} с\n" +
             (project.Mode == ExposureMode.ExposureCalibration ?
                 $"Компенсации столбцов: {string.Join("; ", project.ProcessCalibration.CompensationsMm.Select(Number))} мм\n" :

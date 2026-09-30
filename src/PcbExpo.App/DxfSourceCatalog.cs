@@ -3,7 +3,9 @@ using PcbExpo.Core;
 namespace PcbExpo.App;
 
 internal sealed record DxfSource(string Label, string FileStem, string Description, Func<IReadOnlyList<DxfContour>> Build,
-    RectMm? ViewBounds = null)
+    RectMm? ViewBounds = null, CncExportSettings? CncSettings = null,
+    IReadOnlyList<GerberLayer>? DrillFiles = null, Func<IReadOnlyList<RectMm>>? BoardLayout = null,
+    Func<CncExportSettings, IReadOnlyList<DxfContour>>? BuildCnc = null)
 {
     public override string ToString() => Label;
 }
@@ -45,12 +47,13 @@ internal sealed class DxfSourceCatalog(ExposureRasterService rasterService)
             var drillSelection = project.LayerPaths.TryGetValue(GerberLayerKind.Drill, out var selectedDrill)
                 ? Path.GetFileName(selectedDrill) : "все файлы сверловки";
             var cncDescription = $"Вся раскладка плат, сторона {side}; {drillSelection}. Начало координат — левый нижний угол заготовки, X вправо, Y вверх, мм. Учитываются размещение копий, Bottom и пользовательские зеркалирования текущего режима платы. Оптическое зеркалирование CXDLPV4, инверсия и компенсация экспозиции не применяются. Контуры — осевые линии Gerber; отверстия — окружности исходного диаметра, прямые пазы — замкнутые контуры с дугами. При режиме калибровки используется сторона Top без пользовательских зеркалирований. Траектории инструмента задаются в CAM.";
-            sources.Add(new("CNC: контуры плат и сверловка всей раскладки", "cnc_layout",
-                cncDescription, () => new CncLayoutService().Build(project, package), blankBounds));
-            sources.Add(new("CNC: только сверловка всей раскладки", "cnc_drills",
-                cncDescription, () => new CncLayoutService().Build(project, package, includeOutline: false), blankBounds));
-            sources.Add(new("CNC: только контуры плат всей раскладки", "cnc_outlines",
-                cncDescription, () => new CncLayoutService().Build(project, package, includeDrills: false), blankBounds));
+            sources.Add(new("CNC: раскладка плат — выбор состава", "cnc_layout",
+                cncDescription + " Состав задаётся флажками: выбранные операции сохраняются для всех плат раскладки. Серые рамки позиций плат служат подсказкой preview.",
+                () => new CncLayoutService().Build(project, package, project.CncExport), blankBounds,
+                project.CncExport, CncLayoutService.SelectedDrills(project, package),
+                () => package.BoardBoundsMm is { } bounds
+                    ? new PanelizationService(new BlankLayoutService()).LayoutPhysical(project, bounds.Width, bounds.Height)
+                    : [], options => new CncLayoutService().Build(project, package, options)));
             foreach (var drillLayer in package.Layers.Where(l => l.Kind == GerberLayerKind.Drill))
                 sources.Add(new($"Сверловка: {drillLayer.RelativePath} (исходные координаты)", UiText.SafeFileName(Path.GetFileNameWithoutExtension(drillLayer.Name)),
                     "Отверстия и прямые пазы одного Excellon без размещения на заготовке. Единицы преобразуются в мм, диаметры сохраняются. Для обработки размещённых копий выберите источник CNC.",

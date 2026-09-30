@@ -26,12 +26,33 @@ public class RealSourceTests
         Assert.Equal(3, package.Layers.Count(x => x.Kind == GerberLayerKind.Drill));
         foreach (var kind in new[] { GerberLayerKind.TopCopper, GerberLayerKind.BottomCopper,
                      GerberLayerKind.TopSolderMask, GerberLayerKind.BottomSolderMask,
-                     GerberLayerKind.BoardOutline })
+                     GerberLayerKind.BoardOutline, GerberLayerKind.TopPasteMask })
             Assert.Single(package.Layers, x => x.Kind == kind);
         Assert.False(package.OutlineFallback);
         Assert.NotNull(package.BoardBoundsMm);
         Assert.Equal(35.56, package.BoardBoundsMm.Value.Width, 2);
         Assert.Equal(25.40, package.BoardBoundsMm.Value.Height, 2);
+    }
+
+    [Fact]
+    public void EasyEdaCncCompositionIncludesTheWholePanelAndSkipsValidEmptyViaFile()
+    {
+        var source = SourceFolder();
+        if (source is null) return;
+        using var package = new GerberImportService().Import(source);
+        var project = new ProjectModel();
+        project.Panelization.Mode = PlacementMode.FillBlank;
+        project.LayerPaths[GerberLayerKind.BoardOutline] = package.GetLayer(GerberLayerKind.BoardOutline)!.Path;
+        var result = new CncLayoutService().Build(project, package, project.CncExport);
+        var boards = new PanelizationService(new BlankLayoutService()).LayoutPhysical(project,
+            package.BoardBoundsMm!.Value.Width, package.BoardBoundsMm.Value.Height);
+        Assert.True(boards.Count > 1);
+        Assert.Equal(boards.Count, result.Count(c => c.Layer == "BOARD_OUTLINE"));
+        Assert.Single(result, c => c.Layer == "BLANK");
+        Assert.Equal(4, result.Count(c => c.Layer == "MECHANICAL_HOLES"));
+        Assert.Contains(result, c => c.Layer == "DRILL_BOARD");
+        Assert.Contains(result, c => c.Layer == "DRILL_COMPONENT");
+        Assert.DoesNotContain(result, c => c.Layer == "DRILL_VIA");
     }
 
     [Fact]
@@ -80,7 +101,7 @@ public class RealSourceTests
         var project = new ProjectModel();
         project.Panelization.Mode = PlacementMode.FillBlank;
         project.LayerPaths = package.Layers.Where(x => x.Kind is GerberLayerKind.TopCopper or
-            GerberLayerKind.BottomCopper or GerberLayerKind.TopSolderMask or GerberLayerKind.BottomSolderMask)
+            GerberLayerKind.BottomCopper or GerberLayerKind.TopSolderMask or GerberLayerKind.BottomSolderMask or GerberLayerKind.TopPasteMask)
             .ToDictionary(x => x.Kind, x => x.Path);
         var printer = new PrinterInfo("test", "CXDLPV4", 1200, 678, 223, 126,
             223.0 / 1200, 126.0 / 678, 1, 1, 255);
@@ -90,7 +111,7 @@ public class RealSourceTests
             new GerberRenderService(), new ExposureMaskService());
         var boardsByMode = new Dictionary<ExposureMode, RectMm[]>();
         foreach (var mode in new[] { ExposureMode.TopCopper, ExposureMode.BottomCopper,
-                     ExposureMode.TopSolderMask, ExposureMode.BottomSolderMask })
+                     ExposureMode.TopSolderMask, ExposureMode.BottomSolderMask, ExposureMode.TopStencil })
         {
             project.Mode = mode;
             using var result = service.Build(project, printer, RasterGeometry.Preview(printer), package.BoardBoundsMm);
@@ -99,6 +120,7 @@ public class RealSourceTests
         }
         Assert.True(boardsByMode[ExposureMode.TopCopper].Length > 1);
         Assert.Equal(boardsByMode[ExposureMode.TopCopper], boardsByMode[ExposureMode.TopSolderMask]);
+        Assert.Equal(boardsByMode[ExposureMode.TopCopper], boardsByMode[ExposureMode.TopStencil]);
         Assert.Equal(boardsByMode[ExposureMode.BottomCopper], boardsByMode[ExposureMode.BottomSolderMask]);
         Assert.Equal(boardsByMode[ExposureMode.TopCopper]
             .Select(x => coordinates.FlipBlankAroundVerticalAxis(x, project.Blank)),

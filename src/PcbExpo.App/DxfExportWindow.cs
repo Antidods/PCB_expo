@@ -14,6 +14,10 @@ internal sealed class DxfExportWindow : Window
     private readonly TextBlock _status = new() { TextWrapping = TextWrapping.Wrap };
     private readonly Button _export = new() { Content = "Сохранить DXF", IsEnabled = false };
     private readonly DxfPreviewControl _preview = new();
+    private readonly StackPanel _cncOptions = new() { Spacing = 6, IsVisible = false };
+    private readonly TextBlock _selectionLabel = new() { Text = "Какие контуры сохранить" };
+    private DxfSource? _optionsSource;
+    private IReadOnlyList<RectMm> _boards = [];
     private IReadOnlyList<DxfContour> _contours = [];
     private int _generation;
     private readonly string _projectName;
@@ -34,18 +38,19 @@ internal sealed class DxfExportWindow : Window
         _source.ItemsSource = sources; _source.SelectedIndex = 0;
         content.Children.Add(_source);
         content.Children.Add(_description);
-        content.Children.Add(new TextBlock { Text = "Какие контуры сохранить" });
+        content.Children.Add(_cncOptions);
+        content.Children.Add(_selectionLabel);
         content.Children.Add(_selection);
         content.Children.Add(new TextBlock
         {
-            Text = "DXF в миллиметрах, масштаб 1:1; X вправо, Y вверх. Можно сохранить все контуры или один выбранный. Внутренние границы (вырезы) сохраняются отдельными контурами.",
+            Text = "DXF в миллиметрах, масштаб 1:1; X вправо, Y вверх. Для CNC выбранный состав всегда сохраняется для всей раскладки. Для остальных источников можно сохранить все контуры или один выбранный.",
             TextWrapping = TextWrapping.Wrap
         });
         content.Children.Add(_status);
         root.Children.Add(new ScrollViewer { Content = content });
         var previewPanel = new Grid { RowDefinitions = new RowDefinitions("*,Auto"), Margin = new Thickness(16, 0, 0, 0) };
         previewPanel.Children.Add(_preview);
-        var legend = new TextBlock { Text = "Зелёный: контуры. Голубой: сверловка и пазы. Серый: заготовка. Колесо: масштаб; правая кнопка: сдвиг.",
+        var legend = new TextBlock { Text = "Зелёный: контуры плат. Голубой: сверловка и пазы. Серый: заготовка, центровочные отверстия и рамки позиций плат. Колесо: масштаб; правая кнопка: сдвиг.",
             TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 8, 0, 0) };
         Grid.SetRow(legend, 1); previewPanel.Children.Add(legend);
         Grid.SetColumn(previewPanel, 1); root.Children.Add(previewPanel);
@@ -61,7 +66,7 @@ internal sealed class DxfExportWindow : Window
         {
             ToolTip.SetTip(_selection, _selection.SelectedItem?.ToString());
             if (_selection.SelectedItem is DisplayChoice<int> choice && _source.SelectedItem is DxfSource selectedSource)
-                _preview.SetContours(choice.Value < 0 ? _contours : [_contours[choice.Value]], selectedSource.ViewBounds);
+                _preview.SetContours(choice.Value < 0 ? _contours : [_contours[choice.Value]], selectedSource.ViewBounds, _boards);
         };
         _export.Click += async (_, _) => await Export();
         Opened += async (_, _) => await LoadSource();
@@ -74,19 +79,24 @@ internal sealed class DxfExportWindow : Window
         _contours = []; _selection.ItemsSource = null; _export.IsEnabled = false;
         _preview.SetContours([]);
         if (_source.SelectedItem is not DxfSource source) return;
+        ConfigureCncOptions(source);
         _description.Text = source.Description;
         ToolTip.SetTip(_source, source.Label);
         _status.Text = "Построение контуров…";
         try
         {
-            var contours = await Task.Run(source.Build);
+            _boards = source.BoardLayout?.Invoke() ?? [];
+            _preview.SetContours([], source.ViewBounds, _boards);
+            var snapshot = source.CncSettings?.Snapshot();
+            var contours = await Task.Run(() => snapshot is not null && source.BuildCnc is { } buildCnc
+                ? buildCnc(snapshot) : source.Build());
             if (generation != _generation) return;
             _contours = contours;
             _selection.ItemsSource = new[] { new DisplayChoice<int>(-1, $"Все контуры ({contours.Count})") }
-                .Concat(contours.Select((c, i) => new DisplayChoice<int>(i, Label(c, i)))).ToArray();
+                .Concat(source.CncSettings is null ? contours.Select((c, i) => new DisplayChoice<int>(i, Label(c, i))) : []).ToArray();
             _selection.SelectedIndex = 0;
             _export.IsEnabled = contours.Count > 0;
-            _status.Text = $"Контуров: {contours.Count}; круглых отверстий: {contours.OfType<DxfCircle>().Count()}; пазов: {contours.Count(c => c.Layer == "DRILL_SLOTS")}.";
+            _status.Text = $"Контуров: {contours.Count}; круглых отверстий: {contours.OfType<DxfCircle>().Count()}; пазов: {contours.Count(c => c.Layer.EndsWith("_SLOTS", StringComparison.Ordinal))}.";
         }
         catch (Exception error)
         {
@@ -94,11 +104,62 @@ internal sealed class DxfExportWindow : Window
         }
     }
 
+    private void ConfigureCncOptions(DxfSource source)
+    {
+        var options = source.CncSettings;
+        _cncOptions.IsVisible = options is not null;
+        _selection.IsVisible = _selectionLabel.IsVisible = options is null;
+        if (ReferenceEquals(_optionsSource, source)) return;
+        _optionsSource = source;
+        _cncOptions.Children.Clear();
+        if (options is null) return;
+        _cncOptions.Children.Add(new TextBlock { Text = "Состав DXF для всей раскладки", FontWeight = FontWeight.Bold });
+        Add("Контур текстолита", options.BlankOutline, v => options.BlankOutline = v);
+        Add("Центровочные отверстия текстолита", options.RegistrationHoles, v => options.RegistrationHoles = v);
+        Add("Внешние контуры плат", options.BoardOutlines, v => options.BoardOutlines = v);
+        Add("Внутренние вырезы плат", options.BoardCutouts, v => options.BoardCutouts = v);
+        Add("Механические отверстия на платах", options.BoardHoles, v => options.BoardHoles = v);
+        Add("Сверловка переходных отверстий", options.Vias, v => options.Vias = v);
+        Add("Отверстия для компонентов", options.ComponentHoles, v => options.ComponentHoles = v);
+        _cncOptions.Children.Add(new TextBlock
+        {
+            Text = "Назначение сверловки предложено по именам файлов (Via / NPTH / PTH). Проверьте его; неизвестные файлы относятся к механическим отверстиям. Для смешанного файла сначала разделите операции в CAD.",
+            TextWrapping = TextWrapping.Wrap
+        });
+        foreach (var file in source.DrillFiles ?? [])
+        {
+            _cncOptions.Children.Add(new TextBlock { Text = file.RelativePath, TextWrapping = TextWrapping.Wrap });
+            var category = new ComboBox { HorizontalAlignment = HorizontalAlignment.Stretch,
+                ItemsSource = new DisplayChoice<CncDrillKind>[]
+                {
+                    new(CncDrillKind.BoardHole, "Механические отверстия"),
+                    new(CncDrillKind.Via, "Переходные отверстия"),
+                    new(CncDrillKind.Component, "Отверстия компонентов")
+                } };
+            category.SelectedItem = category.ItemsSource.Cast<DisplayChoice<CncDrillKind>>()
+                .Single(c => c.Value == options.KindFor(file));
+            category.SelectionChanged += async (_, _) =>
+            {
+                if (category.SelectedItem is not DisplayChoice<CncDrillKind> choice) return;
+                options.DrillKinds[file.RelativePath] = choice.Value;
+                await LoadSource();
+            };
+            _cncOptions.Children.Add(category);
+        }
+        void Add(string label, bool value, Action<bool> set)
+        {
+            var checkbox = new CheckBox { Content = new TextBlock { Text = label, TextWrapping = TextWrapping.Wrap }, IsChecked = value };
+            checkbox.IsCheckedChanged += async (_, _) => { set(checkbox.IsChecked == true); await LoadSource(); };
+            _cncOptions.Children.Add(checkbox);
+        }
+    }
+
     private async Task Export()
     {
         if (_source.SelectedItem is not DxfSource source || _selection.SelectedItem is not DisplayChoice<int> selection) return;
-        IReadOnlyList<DxfContour> selected = selection.Value < 0 ? _contours : [_contours[selection.Value]];
+        IReadOnlyList<DxfContour> selected = source.CncSettings is not null || selection.Value < 0 ? _contours : [_contours[selection.Value]];
         _export.IsEnabled = false; _source.IsEnabled = false; _selection.IsEnabled = false;
+        _cncOptions.IsEnabled = false;
         try
         {
             var name = UiText.SafeFileName(_projectName);
@@ -117,7 +178,7 @@ internal sealed class DxfExportWindow : Window
             Close();
         }
         catch (Exception error) { _status.Text = error.Message; }
-        finally { _export.IsEnabled = true; _source.IsEnabled = true; _selection.IsEnabled = true; }
+        finally { _export.IsEnabled = true; _source.IsEnabled = true; _selection.IsEnabled = true; _cncOptions.IsEnabled = true; }
     }
 
     private static string Label(DxfContour contour, int index) => contour switch
