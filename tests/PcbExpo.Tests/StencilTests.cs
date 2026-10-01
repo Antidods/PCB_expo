@@ -41,6 +41,7 @@ public sealed class StencilTests : IDisposable
         }
         Assert.Single(mask.Boards);
         Assert.Equal(mode == ExposureMode.BottomStencil ? 105 : 25, mask.Boards[0].X);
+        Assert.Equal(255, Pixel(mask, new(mask.Boards[0].X - .2, mask.Boards[0].Center.Y)));
     }
 
     [Fact]

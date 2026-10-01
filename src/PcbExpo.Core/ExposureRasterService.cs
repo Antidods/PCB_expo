@@ -71,6 +71,8 @@ public sealed class ExposureRasterService(
     GerberRenderService gerber,
     ExposureMaskService maskService)
 {
+    private const double BoardContourWidthMm = 0.5;
+
     public MaskResult Build(ProjectModel project, PrinterInfo printer, RasterGeometry raster,
         RectangleF? boardBounds)
     {
@@ -104,16 +106,10 @@ public sealed class ExposureRasterService(
             var transform = project.CurrentTransform;
             if (project.IsStencil)
             {
-                // Compensate the openings before inversion so erosion does not add a dark board frame.
+                // Компенсируем окна до инверсии, чтобы эрозия не добавляла тёмную рамку платы.
                 maskService.Apply(local, false, transform.MirrorX, transform.MirrorY,
                     -project.CurrentCompensationMm, raster);
                 CvInvoke.BitwiseNot(local, local);
-                var corner = coordinates.BlankToPixel(new PointMm(0, project.Blank.HeightMm), blankOnLcd, raster);
-                var end = coordinates.BlankToPixel(new PointMm(project.Blank.WidthMm, 0), blankOnLcd, raster);
-                var rectangle = Rectangle.Intersect(new Rectangle(corner.X, corner.Y, end.X - corner.X, end.Y - corner.Y),
-                    new Rectangle(0, 0, output.Width, output.Height));
-                using var blankArea = new Mat(output, rectangle);
-                blankArea.SetTo(new MCvScalar(255));
             }
             else
                 maskService.Apply(local, transform.Invert, transform.MirrorX, transform.MirrorY,
@@ -121,21 +117,40 @@ public sealed class ExposureRasterService(
             if (project.IsBottom)
                 CvInvoke.Flip(local, local, FlipType.Horizontal);
 
-            foreach (var board in physicalBoards)
+            var corner = coordinates.BlankToPixel(new PointMm(0, project.Blank.HeightMm), blankOnLcd, raster);
+            var end = coordinates.BlankToPixel(new PointMm(project.Blank.WidthMm, 0), blankOnLcd, raster);
+            var blankRectangle = Rectangle.Intersect(new Rectangle(corner.X, corner.Y, end.X - corner.X, end.Y - corner.Y),
+                new Rectangle(0, 0, output.Width, output.Height));
+            using (var blankArea = new Mat(output, blankRectangle))
+                blankArea.SetTo(new MCvScalar(255));
+
+            var boardAreas = physicalBoards.Select(board => BoardArea(local, output, board, blankOnLcd, raster)).ToArray();
+            if (!project.IsStencil)
             {
-                var lcd = coordinates.BlankToLcd(board, blankOnLcd);
-                var topLeft = coordinates.LcdToPixel(new PointMm(lcd.X, lcd.Top), raster);
-                Paste(local, output, topLeft, project.IsStencil);
-            }
-            if (project.IsStencil)
-                foreach (var hole in blankLayout.MechanicalHoles(project.Blank))
+                var contourX = CoordinateTransformService.MmToPx(BoardContourWidthMm, raster.PixelsPerMmX);
+                var contourY = CoordinateTransformService.MmToPx(BoardContourWidthMm, raster.PixelsPerMmY);
+                foreach (var area in boardAreas)
                 {
-                    var center = coordinates.BlankToPixel(hole, blankOnLcd, raster);
-                    var rx = Math.Max(1, CoordinateTransformService.MmToPx(project.Blank.RegistrationHoleDiameterMm / 2, raster.PixelsPerMmX));
-                    var ry = Math.Max(1, CoordinateTransformService.MmToPx(project.Blank.RegistrationHoleDiameterMm / 2, raster.PixelsPerMmY));
-                    CvInvoke.Ellipse(output, new Point(center.X, center.Y), new Size(rx, ry),
-                        0, 0, 360, new MCvScalar(0), -1, LineType.EightConnected);
+                    // Тёмный контур расположен снаружи платы; рисунки всех плат накладываются после его построения.
+                    var contourArea = Rectangle.Intersect(Rectangle.Inflate(area, contourX, contourY), blankRectangle);
+                    using var target = new Mat(output, contourArea);
+                    target.SetTo(new MCvScalar(0));
                 }
+            }
+            foreach (var area in boardAreas)
+            {
+                using var target = new Mat(output, area);
+                if (project.IsStencil) CvInvoke.BitwiseAnd(target, local, target);
+                else CvInvoke.BitwiseOr(target, local, target);
+            }
+            foreach (var hole in blankLayout.MechanicalHoles(project.Blank))
+            {
+                var center = coordinates.BlankToPixel(hole, blankOnLcd, raster);
+                var rx = Math.Max(1, CoordinateTransformService.MmToPx(project.Blank.RegistrationHoleDiameterMm / 2, raster.PixelsPerMmX));
+                var ry = Math.Max(1, CoordinateTransformService.MmToPx(project.Blank.RegistrationHoleDiameterMm / 2, raster.PixelsPerMmY));
+                CvInvoke.Ellipse(output, new Point(center.X, center.Y), new Size(rx, ry),
+                    0, 0, 360, new MCvScalar(0), -1, LineType.EightConnected);
+            }
             return new MaskResult(output, blankOnLcd, physicalBoards);
         }
         catch
@@ -145,15 +160,15 @@ public sealed class ExposureRasterService(
         }
     }
 
-    private static void Paste(Mat local, Mat output, PixelPoint topLeft, bool stencil = false)
+    private Rectangle BoardArea(Mat local, Mat output, RectMm board, RectMm blankOnLcd, RasterGeometry raster)
     {
+        var lcd = coordinates.BlankToLcd(board, blankOnLcd);
+        var topLeft = coordinates.LcdToPixel(new PointMm(lcd.X, lcd.Top), raster);
         var destination = new Rectangle(topLeft.X, topLeft.Y, local.Width, local.Height);
         var clipped = Rectangle.Intersect(destination, new Rectangle(0, 0, output.Width, output.Height));
         if (clipped.Width != local.Width || clipped.Height != local.Height)
             throw new InvalidOperationException("Экспозиционная маска вышла за пределы LCD.");
-        using var target = new Mat(output, clipped);
-        if (stencil) CvInvoke.BitwiseAnd(target, local, target);
-        else CvInvoke.BitwiseOr(target, local, target);
+        return clipped;
     }
 
     private void DrawRegistration(Mat output, BlankProfile blank, RectMm blankOnLcd, RasterGeometry raster)

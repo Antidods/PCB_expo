@@ -32,8 +32,13 @@ public class RasterFlipTests
             using var top = service.Build(project, info, RasterGeometry.Native(info), boardBounds);
             project.Mode = ExposureMode.BottomCopper;
             using var bottom = service.Build(project, info, RasterGeometry.Native(info), boardBounds);
-            var a = CvInvoke.BoundingRectangle(top.Image);
-            var b = CvInvoke.BoundingRectangle(bottom.Image);
+            // Белая заливка занимает всю заготовку; сравниваем рисунок внутри ожидаемых позиций плат.
+            using var topArtwork = new Mat(top.Image, new Rectangle(375, 300, 100, 50));
+            using var bottomArtwork = new Mat(bottom.Image, new Rectangle(525, 300, 100, 50));
+            var a = CvInvoke.BoundingRectangle(topArtwork);
+            var b = CvInvoke.BoundingRectangle(bottomArtwork);
+            a.Offset(375, 300);
+            b.Offset(525, 300);
             Assert.NotEqual(a.X, b.X);
             Assert.InRange(a.X + b.Right, 998, 1002);
             Assert.Equal(a.Y, b.Y);
