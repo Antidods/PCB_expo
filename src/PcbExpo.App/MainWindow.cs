@@ -273,6 +273,12 @@ public sealed class MainWindow : Window
         };
         right.Children.Add(processCalibrationButton);
         right.Children.Add(Button("Экспортировать CXDLPV4", async () => await Export()));
+        right.Children.Add(Button("Экспортировать растр в PNG", async () => await ExportRaster()));
+        right.Children.Add(new TextBlock
+        {
+            Text = "PNG: полное разрешение LCD, ориентация предпросмотра, физический масштаб X/Y. Печать: 100 %, без подгонки. Для лазера проверьте размеры и полярность в его программе.",
+            TextWrapping = TextWrapping.Wrap, FontSize = 12
+        });
         right.Children.Add(Button("Экспортировать пробы с разным временем", async () => await ExportCalibrationSeries()));
         right.Children.Add(Button("Экспорт контуров в DXF", async () => await ExportDxf()));
         Section(right, "Состояние и предупреждения");
@@ -706,6 +712,45 @@ public sealed class MainWindow : Window
             _status.Text = $"Экспорт и повторное чтение успешны: {output.Path}";
         }
         catch (Exception error) { ShowError(error); }
+    }
+
+    private async Task ExportRaster()
+    {
+        if (_printer is not { } printer) { ShowError(new InvalidOperationException("Сначала загрузите шаблон для разрешения и физического размера растра.")); return; }
+        var path = await StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = "Экспортировать растр в полном разрешении", DefaultExtension = "png",
+            SuggestedFileName = $"{UiText.SafeFileName(_project.Name)}_{_project.Mode}.png",
+            FileTypeChoices = [new FilePickerFileType("PNG без потерь") { Patterns = ["*.png"] }]
+        });
+        if (path is null) return;
+        var wasEnabled = ((Control)Content!).IsEnabled;
+        ((Control)Content!).IsEnabled = false;
+        try
+        {
+            var outputPath = path.Path.LocalPath;
+            var protectedPaths = (_package?.Layers.Select(l => l.Path) ?? [])
+                .Concat([_project.TemplatePath, _project.GerberSourcePath]);
+            if (protectedPaths.Where(p => !string.IsNullOrWhiteSpace(p))
+                .Any(p => Path.GetFullPath(p).Equals(Path.GetFullPath(outputPath), StringComparison.OrdinalIgnoreCase)))
+                throw new InvalidOperationException("Нельзя перезаписывать исходные файлы.");
+            if (!Path.GetExtension(outputPath).Equals(".png", StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("Выберите имя с расширением .png.");
+            var raster = RasterGeometry.Native(printer);
+            var project = JsonSerializer.Deserialize<ProjectModel>(JsonSerializer.Serialize(_project, LocalStorage.JsonOptions), LocalStorage.JsonOptions)!;
+            project.LayerPaths = new Dictionary<GerberLayerKind, string>(_project.LayerPaths);
+            var bounds = _package?.BoardBoundsMm;
+            _status.Text = "Экспорт растра в полном разрешении…";
+            await Task.Run(() =>
+            {
+                using var result = _raster.Build(project, printer, raster, bounds);
+                new RasterImageExportService().ExportPng(outputPath, result.Image, raster);
+            });
+            _status.Text = $"PNG сохранён: {outputPath}\n{raster.WidthPx} × {raster.HeightPx} px; {UiText.Number(raster.DisplayWidthMm)} × {UiText.Number(raster.DisplayHeightMm)} мм. Ориентация предпросмотра; печать 100 %, без подгонки.";
+            _log.Write($"RasterExport={outputPath}; mode={project.Mode}; resolution={raster.WidthPx}x{raster.HeightPx}; sizeMm={raster.DisplayWidthMm}x{raster.DisplayHeightMm}");
+        }
+        catch (Exception error) { ShowError(error); }
+        finally { ((Control)Content!).IsEnabled = wasEnabled; }
     }
 
     private async Task ConfigureProcessCalibration()
