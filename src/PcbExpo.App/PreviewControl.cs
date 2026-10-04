@@ -60,6 +60,8 @@ public sealed class PreviewControl : Control
         var area = ViewRect();
         context.DrawImage(_bitmap, area);
         context.DrawRectangle(null, new Pen(Brushes.Gray, 1), area);
+        // В центровке точки, кольца и рамка уже входят в растр с физической толщиной.
+        if (_project.Mode == ExposureMode.Registration) return;
         DrawMmRect(context, _blankOnLcd, new Pen(Brushes.DeepSkyBlue, 2));
         foreach (var board in _boards)
         {
@@ -79,15 +81,6 @@ public sealed class PreviewControl : Control
                     _blankOnLcd.Y + hole.Y));
                 var radius = _project.Blank.RegistrationHoleDiameterMm * MmScale() / 2;
                 context.DrawEllipse(null, new Pen(Brushes.OrangeRed, 1), center, radius, radius);
-            }
-            if (_project.Mode == ExposureMode.Registration)
-            {
-                foreach (var point in _layout.AlignmentPoints(_project.Blank))
-                {
-                    var center = ToScreen(new PointMm(_blankOnLcd.X + point.X,
-                        _blankOnLcd.Y + point.Y));
-                    context.DrawEllipse(Brushes.Yellow, null, center, 3, 3);
-                }
             }
         }
         catch (InvalidOperationException) { }

@@ -173,6 +173,41 @@ public sealed class ExposureRasterService(
 
     private void DrawRegistration(Mat output, BlankProfile blank, RectMm blankOnLcd, RasterGeometry raster)
     {
+        var widthMm = blank.AlignmentPointDiameterMm;
+        if (!double.IsFinite(widthMm) || widthMm <= 0 || widthMm >= blank.RegistrationHoleDiameterMm / 2)
+            throw new InvalidOperationException("Диаметр точки должен быть положительным и меньше радиуса центровочного отверстия, чтобы окружность оставалась незакрашенной.");
+        var thicknessX = Math.Max(1, CoordinateTransformService.MmToPx(widthMm, raster.PixelsPerMmX));
+        var thicknessY = Math.Max(1, CoordinateTransformService.MmToPx(widthMm, raster.PixelsPerMmY));
+        var topLeft = coordinates.BlankToPixel(new PointMm(0, blank.HeightMm), blankOnLcd, raster);
+        var bottomRight = coordinates.BlankToPixel(new PointMm(blank.WidthMm, 0), blankOnLcd, raster);
+        var inner = new Rectangle(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
+        var outer = Rectangle.Inflate(inner, thicknessX, thicknessY);
+        if (!new Rectangle(0, 0, output.Width, output.Height).Contains(outer))
+            throw new InvalidOperationException("Внешняя рамка центровки выходит за пределы LCD. Уменьшите размер заготовки или диаметр точки.");
+        // Рамка целиком снаружи текстолита; её внутренняя граница совпадает с границей заготовки.
+        using (var frame = new Mat(output, outer)) frame.SetTo(new MCvScalar(255));
+        using (var blankArea = new Mat(output, inner)) blankArea.SetTo(new MCvScalar(0));
+        foreach (var hole in blankLayout.MechanicalHoles(blank))
+        {
+            var center = coordinates.BlankToPixel(hole, blankOnLcd, raster);
+            var radiusX = Math.Max(1, CoordinateTransformService.MmToPx(blank.RegistrationHoleDiameterMm / 2, raster.PixelsPerMmX));
+            var radiusY = Math.Max(1, CoordinateTransformService.MmToPx(blank.RegistrationHoleDiameterMm / 2, raster.PixelsPerMmY));
+            if (radiusX <= thicknessX || radiusY <= thicknessY)
+                throw new InvalidOperationException("Разрешения LCD недостаточно для незакрашенной окружности центровочного отверстия.");
+            var area = new Rectangle(center.X - radiusX, center.Y - radiusY, radiusX * 2 + 1, radiusY * 2 + 1);
+            if (!new Rectangle(0, 0, output.Width, output.Height).Contains(area))
+                throw new InvalidOperationException("Окружность центровочного отверстия выходит за пределы LCD.");
+            using var ring = new Mat(area.Height, area.Width, DepthType.Cv8U, 1);
+            ring.SetTo(new MCvScalar(0));
+            var localCenter = new Point(radiusX, radiusY);
+            CvInvoke.Ellipse(ring, localCenter, new Size(radiusX, radiusY),
+                0, 0, 360, new MCvScalar(255), -1, LineType.EightConnected);
+            // Убираем внутренний диск, сохраняя кольцо внутри исходного диаметра отверстия.
+            CvInvoke.Ellipse(ring, localCenter, new Size(radiusX - thicknessX, radiusY - thicknessY),
+                0, 0, 360, new MCvScalar(0), -1, LineType.EightConnected);
+            using var target = new Mat(output, area);
+            CvInvoke.BitwiseOr(target, ring, target);
+        }
         foreach (var point in blankLayout.AlignmentPoints(blank))
         {
             var center = coordinates.BlankToPixel(point, blankOnLcd, raster);
