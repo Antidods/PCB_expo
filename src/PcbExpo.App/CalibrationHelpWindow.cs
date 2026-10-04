@@ -38,6 +38,10 @@ internal sealed class CalibrationHelpWindow : Window
         Add("5. После проявления сравните строки с нужными для платы толщинами и зазорами. Сначала сравнивайте времена в столбце с компенсацией 0. Успех: непрерывные линии и открытые просветы без перемычек у обеих групп H/V, в том числе на поворотах. Открытый зазор с исчезнувшей линией не считается успехом. Запишите наблюдения H/V в results.tsv.");
         Add("6. Для подходящего времени сравните столбцы компенсации. При нескольких успешных вариантах выбирайте поправку ближе к нулю и повторите опыт для подтверждения. Для меди проверьте результат также после травления; автоматической оценки фотографии нет.");
         Add("7. В «Настроить калибровку» введите проверенные время и компенсацию, затем нажмите «Применить к меди» или «Применить к паяльной маске». Обновится общий профиль Top/Bottom выбранного процесса; инверсия и PWM сохранят свои значения. Для паяльного трафарета задайте проверенные значения отдельно в его режиме: толщина фотополимера и процесс изготовления могут требовать другого времени.");
+        content.Children.Add(new TextBlock { Text = "Интерпретация результатов", FontSize = 21,
+            FontWeight = FontWeight.Bold, TextWrapping = TextWrapping.Wrap });
+        content.Children.Add(new TextBlock { Text = ExposureCalibrationExportService.ResultInterpretation,
+            TextWrapping = TextWrapping.Wrap, FontSize = 15, Margin = new Thickness(0, 0, 14, 0) });
         root.Children.Add(new ScrollViewer { Content = content });
         var close = new Button { Content = "Закрыть", HorizontalAlignment = HorizontalAlignment.Right, Margin = new Thickness(0, 14, 0, 0) };
         close.Click += (_, _) => Close();

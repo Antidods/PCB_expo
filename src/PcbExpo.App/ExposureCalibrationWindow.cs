@@ -52,10 +52,13 @@ internal sealed class ExposureCalibrationWindow : Window
         panel.Children.Add(around);
         Heading("Результат после проявления образцов");
         Text("Найдите строку с нужными толщиной и просветом. Начните со столбца, где компенсация равна 0, затем сравните остальные. Проба подходит, если у обеих групп H и V все линии непрерывны, а просветы открыты без перемычек. Исчезнувшие линии не считаются удачным результатом.");
+        panel.Children.Add(new Expander { Header = "Справка: как интерпретировать результаты", HorizontalAlignment = HorizontalAlignment.Stretch,
+            Content = new TextBlock { Text = ExposureCalibrationExportService.ResultInterpretation,
+                TextWrapping = TextWrapping.Wrap, FontSize = 15, Margin = new Thickness(0, 8, 0, 8) } });
         _selectedCompensation = Field("Компенсация удачного столбца, мм", UiText.Number(settings.SelectedCompensationMm));
         Text("Введите значение с подписи столбца, а не его номер C. В поле времени выше укажите время этого образца. «Сохранить параметры теста» обновляет тест без изменения производственных профилей. «Применить к меди» или «Применить к паяльной маске» записывает выбранные время и компенсацию сразу для Top и Bottom соответствующего материала. Инверсия и PWM не изменяются.");
         var instructions = new Expander { Header = "Подробная процедура и таблица результатов", Content = new TextBlock
-            { Text = ExposureCalibrationExportService.Instructions, TextWrapping = TextWrapping.Wrap } };
+            { Text = ExposureCalibrationExportService.Procedure, TextWrapping = TextWrapping.Wrap } };
         panel.Children.Add(instructions);
         root.Children.Add(new ScrollViewer { Content = panel });
         _status.Margin = new Thickness(0, 12, 0, 0);

@@ -240,6 +240,11 @@ public sealed class MainWindow : Window
         }
         _time = Number(editor, "Время экспозиции, с", () => _project.CurrentExposureSeconds, SetExposureTime);
         _compensation = Number(editor, "Компенсация экспозиции, мм", () => _project.CurrentCompensationMm, SetCompensation);
+        editor.Children.Add(new TextBlock
+        {
+            Text = "Смещение края белой области: «+» расширяет её, «−» сужает. Например, +0,025 мм увеличивает ширину белой линии примерно на 0,05 мм; тёмные окна сужаются. Значение округляется по шагу пикселя X/Y. Время засветки не меняется; поправку подбирайте по калибровке.",
+            TextWrapping = TextWrapping.Wrap, FontSize = 12
+        });
         _pwm = new TextBox { PlaceholderText = "пусто = значение из шаблона" };
         editor.Children.Add(new TextBlock { Text = "PWM подсветки (необязательно, 1..255)" });
         editor.Children.Add(_pwm);
