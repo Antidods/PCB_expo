@@ -15,7 +15,9 @@ public sealed class BlankProfile
     public double HoleInsetXmm { get; set; } = 10;
     public double HoleInsetYmm { get; set; } = 10;
     public double HoleClearanceMm { get; set; } = 2;
-    public double AlignmentPointDiameterMm { get; set; } = 0.2;
+    // Сохраняем имя JSON-поля для совместимости проектов и профилей заготовок.
+    [JsonPropertyName("AlignmentPointDiameterMm")]
+    public double ServiceLineThicknessMm { get; set; } = 0.2;
     public double AlignmentInsetXmm { get; set; } = 10;
     public double AlignmentInsetYmm { get; set; } = 10;
     public List<PointMm>? CustomAlignmentPoints { get; set; }

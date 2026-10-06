@@ -18,10 +18,10 @@ public sealed class ContourService
 
     public IReadOnlyList<DxfContour> Registration(BlankProfile blank)
     {
-        if (!double.IsFinite(blank.AlignmentPointDiameterMm) || blank.AlignmentPointDiameterMm <= 0)
-            throw new InvalidOperationException("Диаметр точек центровки должен быть положительным.");
+        if (!double.IsFinite(blank.ServiceLineThicknessMm) || blank.ServiceLineThicknessMm <= 0)
+            throw new InvalidOperationException("Толщина служебных линий должна быть положительной.");
         return new BlankLayoutService().AlignmentPoints(blank)
-            .Select(p => (DxfContour)new DxfCircle("REGISTRATION", p, blank.AlignmentPointDiameterMm / 2)).ToArray();
+            .Select(p => (DxfContour)new DxfCircle("REGISTRATION", p, blank.ServiceLineThicknessMm / 2)).ToArray();
     }
 
     public IReadOnlyList<DxfContour> Calibration(BlankProfile blank)

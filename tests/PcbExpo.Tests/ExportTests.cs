@@ -68,6 +68,7 @@ public class ExportTests
 
     [Theory]
     [InlineData(ExposureMode.Registration)]
+    [InlineData(ExposureMode.Calibration)]
     [InlineData(ExposureMode.TopStencil)]
     [InlineData(ExposureMode.TopCopper)]
     [InlineData(ExposureMode.BottomCopper)]
@@ -91,7 +92,7 @@ public class ExportTests
             var raster = new ExposureRasterService(coordinates, layout, new PanelizationService(layout),
                 new GerberRenderService(), new ExposureMaskService());
             var project = new ProjectModel { Mode = mode };
-            using var package = mode != ExposureMode.Registration
+            using var package = mode is not (ExposureMode.Registration or ExposureMode.Calibration)
                 ? new GerberImportService().Import(Path.Combine(directory.FullName, "Gerber_Cube_PCB_Cube_2026-09-23")) : null;
             if (package is not null)
                 project.LayerPaths[project.CurrentLayerKind] = package.GetLayer(project.CurrentLayerKind)!.Path;

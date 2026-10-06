@@ -15,7 +15,7 @@ public class RegistrationRasterTests
     {
         var blank = new BlankProfile
         {
-            WidthMm = 100, HeightMm = 60, AlignmentPointDiameterMm = thickness,
+            WidthMm = 100, HeightMm = 60, ServiceLineThicknessMm = thickness,
             HoleInsetXmm = 10, HoleInsetYmm = 10, AlignmentInsetXmm = 20, AlignmentInsetYmm = 20
         };
         var project = new ProjectModel { Mode = ExposureMode.Registration, Blank = blank };

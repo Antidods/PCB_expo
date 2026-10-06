@@ -28,10 +28,10 @@ public sealed class BlankLayoutService
         }
         if (blank.CustomAlignmentPoints is not null)
             throw new InvalidOperationException("Пользовательский набор должен содержать ровно 5 точек центровки.");
-        if (blank.AlignmentPointDiameterMm <= 0 ||
+        if (blank.ServiceLineThicknessMm <= 0 ||
             blank.AlignmentInsetXmm <= 0 || blank.AlignmentInsetYmm <= 0 ||
             blank.AlignmentInsetXmm >= blank.WidthMm / 2 || blank.AlignmentInsetYmm >= blank.HeightMm / 2)
-            throw new InvalidOperationException("Проверьте диаметр и отступы светящихся точек.");
+            throw new InvalidOperationException("Проверьте толщину служебных линий и отступы светящихся точек.");
         return
         [
             new(blank.WidthMm / 2, blank.HeightMm / 2),

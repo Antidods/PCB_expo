@@ -44,7 +44,7 @@ public sealed class MainWindow : Window
     private readonly ComboBox _profile = new();
     private readonly TextBlock _calibrationHint = new()
     {
-        Text = "Эталон: линия 100 мм и квадрат 50 × 50 мм. Минимальная заготовка 110 × 70 мм. Порядок измерений — в справке.",
+        Text = "Эталон: линия 100 мм и квадрат 50 × 50 мм по внешним границам. Толщина задаётся в профиле заготовки. Минимальная заготовка 110 × 70 мм. Порядок измерений — в справке.",
         TextWrapping = TextWrapping.Wrap, IsVisible = false
     };
     private readonly StackPanel _processCalibrationPanel = new() { Spacing = 6, IsVisible = false };
@@ -326,7 +326,7 @@ public sealed class MainWindow : Window
         _blankFields.Add(Number(panel, "Отступ отверстий X, мм", () => _project.Blank.HoleInsetXmm, v => _project.Blank.HoleInsetXmm = v));
         _blankFields.Add(Number(panel, "Отступ отверстий Y, мм", () => _project.Blank.HoleInsetYmm, v => _project.Blank.HoleInsetYmm = v));
         _blankFields.Add(Number(panel, "Запретная зона вокруг отверстий, мм", () => _project.Blank.HoleClearanceMm, v => _project.Blank.HoleClearanceMm = v));
-        _blankFields.Add(Number(panel, "Диаметр точек центровки, мм", () => _project.Blank.AlignmentPointDiameterMm, v => _project.Blank.AlignmentPointDiameterMm = v));
+        _blankFields.Add(Number(panel, "Толщина служебных линий, мм", () => _project.Blank.ServiceLineThicknessMm, v => _project.Blank.ServiceLineThicknessMm = v));
         _blankFields.Add(Number(panel, "Отступ точек центровки X, мм", () => _project.Blank.AlignmentInsetXmm, v => _project.Blank.AlignmentInsetXmm = v));
         _blankFields.Add(Number(panel, "Отступ точек центровки Y, мм", () => _project.Blank.AlignmentInsetYmm, v => _project.Blank.AlignmentInsetYmm = v));
     }
@@ -369,7 +369,7 @@ public sealed class MainWindow : Window
         var values = new[] { _project.Blank.WidthMm, _project.Blank.HeightMm,
             _project.Blank.RegistrationHoleDiameterMm, _project.Blank.HoleInsetXmm,
             _project.Blank.HoleInsetYmm, _project.Blank.HoleClearanceMm,
-            _project.Blank.AlignmentPointDiameterMm, _project.Blank.AlignmentInsetXmm,
+            _project.Blank.ServiceLineThicknessMm, _project.Blank.AlignmentInsetXmm,
             _project.Blank.AlignmentInsetYmm };
         for (var i = 0; i < Math.Min(values.Length, _blankFields.Count); i++)
             _blankFields[i].Text = UiText.Number(values[i]);

@@ -173,17 +173,15 @@ public sealed class ExposureRasterService(
 
     private void DrawRegistration(Mat output, BlankProfile blank, RectMm blankOnLcd, RasterGeometry raster)
     {
-        var widthMm = blank.AlignmentPointDiameterMm;
-        if (!double.IsFinite(widthMm) || widthMm <= 0 || widthMm >= blank.RegistrationHoleDiameterMm / 2)
-            throw new InvalidOperationException("Диаметр точки должен быть положительным и меньше радиуса центровочного отверстия, чтобы окружность оставалась незакрашенной.");
-        var thicknessX = Math.Max(1, CoordinateTransformService.MmToPx(widthMm, raster.PixelsPerMmX));
-        var thicknessY = Math.Max(1, CoordinateTransformService.MmToPx(widthMm, raster.PixelsPerMmY));
+        var (thicknessX, thicknessY) = ServiceLineThickness(blank, raster);
+        if (blank.ServiceLineThicknessMm >= blank.RegistrationHoleDiameterMm / 2)
+            throw new InvalidOperationException("Толщина служебных линий должна быть меньше радиуса центровочного отверстия, чтобы окружность оставалась незакрашенной.");
         var topLeft = coordinates.BlankToPixel(new PointMm(0, blank.HeightMm), blankOnLcd, raster);
         var bottomRight = coordinates.BlankToPixel(new PointMm(blank.WidthMm, 0), blankOnLcd, raster);
         var inner = new Rectangle(topLeft.X, topLeft.Y, bottomRight.X - topLeft.X, bottomRight.Y - topLeft.Y);
         var outer = Rectangle.Inflate(inner, thicknessX, thicknessY);
         if (!new Rectangle(0, 0, output.Width, output.Height).Contains(outer))
-            throw new InvalidOperationException("Внешняя рамка центровки выходит за пределы LCD. Уменьшите размер заготовки или диаметр точки.");
+            throw new InvalidOperationException("Внешняя рамка центровки выходит за пределы LCD. Уменьшите размер заготовки или толщину служебных линий.");
         // Рамка целиком снаружи текстолита; её внутренняя граница совпадает с границей заготовки.
         using (var frame = new Mat(output, outer)) frame.SetTo(new MCvScalar(255));
         using (var blankArea = new Mat(output, inner)) blankArea.SetTo(new MCvScalar(0));
@@ -211,8 +209,8 @@ public sealed class ExposureRasterService(
         foreach (var point in blankLayout.AlignmentPoints(blank))
         {
             var center = coordinates.BlankToPixel(point, blankOnLcd, raster);
-            var radiusX = Math.Max(1, CoordinateTransformService.MmToPx(blank.AlignmentPointDiameterMm / 2, raster.PixelsPerMmX));
-            var radiusY = Math.Max(1, CoordinateTransformService.MmToPx(blank.AlignmentPointDiameterMm / 2, raster.PixelsPerMmY));
+            var radiusX = Math.Max(1, CoordinateTransformService.MmToPx(blank.ServiceLineThicknessMm / 2, raster.PixelsPerMmX));
+            var radiusY = Math.Max(1, CoordinateTransformService.MmToPx(blank.ServiceLineThicknessMm / 2, raster.PixelsPerMmY));
             var rect = new Rectangle(center.X - radiusX, center.Y - radiusY, radiusX * 2 + 1, radiusY * 2 + 1);
             if (!new Rectangle(0, 0, output.Width, output.Height).Contains(rect))
                 throw new InvalidOperationException("Точка центровки выходит за пределы LCD.");
@@ -224,15 +222,34 @@ public sealed class ExposureRasterService(
     private void DrawCalibration(Mat output, BlankProfile blank, RectMm blankOnLcd, RasterGeometry raster)
     {
         var pattern = CalibrationPattern.Create(blank);
+        var (thicknessX, thicknessY) = ServiceLineThickness(blank, raster);
         var lineA = coordinates.BlankToPixel(pattern.LineStart, blankOnLcd, raster);
         var lineB = coordinates.BlankToPixel(pattern.LineEnd, blankOnLcd, raster);
-        CvInvoke.Line(output, new Point(lineA.X, lineA.Y), new Point(lineB.X, lineB.Y), new MCvScalar(255), 1, LineType.EightConnected);
+        // Прямые торцы сохраняют эталонные концы линии при любой толщине.
+        var line = new Rectangle(lineA.X, lineA.Y - thicknessY / 2, lineB.X - lineA.X + 1, thicknessY);
         var squareA = coordinates.BlankToPixel(new PointMm(pattern.Square.X, pattern.Square.Y), blankOnLcd, raster);
         var squareB = coordinates.BlankToPixel(new PointMm(pattern.Square.Right, pattern.Square.Top), blankOnLcd, raster);
-        // Use the same four reference points as the DXF square.
-        CvInvoke.Polylines(output, [new Point(squareA.X, squareA.Y), new Point(squareA.X, squareB.Y),
-            new Point(squareB.X, squareB.Y), new Point(squareB.X, squareA.Y)], true,
-            new MCvScalar(255), 1, LineType.EightConnected);
+        // Внешние границы совпадают с эталоном DXF; вся толщина рамки уходит внутрь.
+        var outer = new Rectangle(squareA.X, squareB.Y, squareB.X - squareA.X + 1, squareA.Y - squareB.Y + 1);
+        if (blank.ServiceLineThicknessMm >= CalibrationPattern.SquareSizeMm / 2 ||
+            thicknessX * 2 >= outer.Width || thicknessY * 2 >= outer.Height)
+            throw new InvalidOperationException("Толщина служебных линий слишком велика для незакрашенного калибровочного квадрата.");
+        var lcd = new Rectangle(0, 0, output.Width, output.Height);
+        if (!lcd.Contains(line) || !lcd.Contains(outer))
+            throw new InvalidOperationException("Калибровочный рисунок выходит за пределы LCD. Уменьшите толщину служебных линий.");
+        using (var target = new Mat(output, line)) target.SetTo(new MCvScalar(255));
+        using (var target = new Mat(output, outer)) target.SetTo(new MCvScalar(255));
+        var inner = Rectangle.Inflate(outer, -thicknessX, -thicknessY);
+        using (var target = new Mat(output, inner)) target.SetTo(new MCvScalar(0));
+    }
+
+    private static (int X, int Y) ServiceLineThickness(BlankProfile blank, RasterGeometry raster)
+    {
+        var widthMm = blank.ServiceLineThicknessMm;
+        if (!double.IsFinite(widthMm) || widthMm <= 0)
+            throw new InvalidOperationException("Толщина служебных линий должна быть положительной.");
+        return (Math.Max(1, CoordinateTransformService.MmToPx(widthMm, raster.PixelsPerMmX)),
+            Math.Max(1, CoordinateTransformService.MmToPx(widthMm, raster.PixelsPerMmY)));
     }
 }
 
