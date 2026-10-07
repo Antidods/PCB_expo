@@ -28,64 +28,86 @@ internal sealed class ExposureCalibrationWindow : Window
         Title = "Калибровка времени и компенсации";
         Width = 780; Height = 830; MinWidth = 540; MinHeight = 450;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
-        var root = new Grid { RowDefinitions = new RowDefinitions("*,Auto,Auto"), Margin = new Thickness(20) };
-        var panel = new StackPanel { Spacing = 7 };
+        UiTheme.FitToScreen(this);
+        var root = new Grid { RowDefinitions = new RowDefinitions("*,Auto") };
+        var sections = new StackPanel { Spacing = 14, Margin = new Thickness(20) };
+        var panel = new StackPanel { Spacing = 8 };
+        var sectionNumber = 0;
         Heading("Размеры линий и просветов тестового рисунка");
         Text("Каждая строка R проверяет одну пару «толщина линии / зазор». Создаются все сочетания двух списков ниже. Каждый столбец C повторяет эти пары с другой компенсацией. В ячейке две группы по 6 зигзагов: H — горизонтальная, V — вертикальная.");
         Text("Введите несколько значений через точку с запятой, например 0,10; 0,15; 0,20. Десятичную часть можно отделять запятой или точкой. Все размеры указаны в миллиметрах.");
         var settings = project.ProcessCalibration;
+        var dimensionGroup = panel;
+        var dimensionLists = new Grid { ColumnDefinitions = new ColumnDefinitions("*,*"), ColumnSpacing = 14 };
+        panel = new StackPanel { Spacing = 7 };
         _widths = Field("Номинальные толщины линий до компенсации, мм", Join(settings.LineWidthsMm));
         Text("Ширина каждого штриха зигзага. От 0,02 до 1 мм, максимум 6 разных значений.");
+        dimensionLists.Children.Add(panel);
+        panel = new StackPanel { Spacing = 7 }; Grid.SetColumn(panel, 1);
+        dimensionLists.Children.Add(panel);
         _gaps = Field("Номинальные просветы между соседними линиями, мм", Join(settings.GapsMm));
         Text("Минимальное расстояние между краями соседних наклонных штрихов, по нормали к штриху. От 0,02 до 1 мм, максимум 6 разных значений.");
+        panel = dimensionGroup; panel.Children.Add(dimensionLists);
         _compensations = Field("Смещение края для каждого столбца, мм", Join(settings.CompensationsMm));
         Text("0 — исходный рисунок. Плюс расширяет белую область, минус сужает. Например, +0,025 мм увеличивает ширину прямой белой линии примерно на 0,05 мм и уменьшает просвет примерно на 0,05 мм. При инверсии белым становится фон, поэтому тёмные линии меняются противоположным образом. От −0,5 до +0,5 мм, максимум 7 столбцов. Фактический сдвиг округляется до пикселей LCD отдельно по X и Y.");
         Heading("Время одиночной пробы и серия сравнений");
         _selectedTime = Field("Время одной пробы / выбранного результата, с", UiText.Number(project.Exposure.ProcessCalibrationSeconds));
         Text("Это время указано на preview и используется кнопкой «Экспортировать CXDLPV4» для одного теста. После проверки образцов сюда вводится время удачной пробы. Для экспорта и применения результата время должно быть больше нуля.");
+        _selectedTime.Width = 200; _selectedTime.HorizontalAlignment = HorizontalAlignment.Left;
         _times = Field("Список времён для отдельных проб, с", Join(settings.TimesSeconds));
         _times.PlaceholderText = "Задайте времена для своего материала через ;";
         Text("Кнопка «Экспортировать пробы с разным временем» в главном окне создаёт отдельный CXDLPV4 для каждого времени из этого списка, максимум 12 файлов. Для каждого файла нужен свежий образец: повторные экспозиции одной платы складывают дозу.");
         var around = new Button { Content = "Заполнить список: 60, 80, 100, 120 и 140 % от времени пробы", HorizontalAlignment = HorizontalAlignment.Stretch };
         around.Content = new TextBlock { Text = "Заполнить список: 60, 80, 100, 120 и 140 % от времени пробы", TextWrapping = TextWrapping.Wrap };
         around.Click += (_, _) => GenerateTimes();
+        around.Classes.Add("acc");
         panel.Children.Add(around);
         Heading("Результат после проявления образцов");
         Text("Найдите строку с нужными толщиной и просветом. Начните со столбца, где компенсация равна 0, затем сравните остальные. Проба подходит, если у обеих групп H и V все линии непрерывны, а просветы открыты без перемычек. Исчезнувшие линии не считаются удачным результатом.");
         panel.Children.Add(new Expander { Header = "Справка: как интерпретировать результаты", HorizontalAlignment = HorizontalAlignment.Stretch,
             Content = new TextBlock { Text = ExposureCalibrationExportService.ResultInterpretation,
-                TextWrapping = TextWrapping.Wrap, FontSize = 15, Margin = new Thickness(0, 8, 0, 8) } });
+                TextWrapping = TextWrapping.Wrap, FontSize = 13, Margin = new Thickness(0, 8, 0, 8) } });
         _selectedCompensation = Field("Компенсация удачного столбца, мм", UiText.Number(settings.SelectedCompensationMm));
         Text("Введите значение с подписи столбца, а не его номер C. В поле времени выше укажите время этого образца. «Сохранить параметры теста» обновляет тест без изменения производственных профилей. «Применить к меди» или «Применить к паяльной маске» записывает выбранные время и компенсацию сразу для Top и Bottom соответствующего материала. Инверсия и PWM не изменяются.");
         var instructions = new Expander { Header = "Подробная процедура и таблица результатов", Content = new TextBlock
             { Text = ExposureCalibrationExportService.Procedure, TextWrapping = TextWrapping.Wrap } };
         panel.Children.Add(instructions);
-        root.Children.Add(new ScrollViewer { Content = panel });
-        _status.Margin = new Thickness(0, 12, 0, 0);
-        Grid.SetRow(_status, 1); root.Children.Add(_status);
-        var buttons = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right,
-            Margin = new Thickness(0, 12, 0, 0) };
+        root.Children.Add(new ScrollViewer { Content = sections, HorizontalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Disabled });
+        var footerContent = new StackPanel { Spacing = 12 };
+        _status.Classes.Add("caption"); footerContent.Children.Add(_status);
+        var buttons = new WrapPanel { Orientation = Orientation.Horizontal, HorizontalAlignment = HorizontalAlignment.Right };
         AddButton("Закрыть", () => Close());
         AddButton("Сохранить параметры теста", () => Commit(null));
-        AddButton("Применить к меди", () => Commit(CalibrationApplyTarget.Copper));
-        AddButton("Применить к паяльной маске", () => Commit(CalibrationApplyTarget.SolderMask));
-        Grid.SetRow(buttons, 2); root.Children.Add(buttons);
+        AddButton("Применить к меди", () => Commit(CalibrationApplyTarget.Copper), "acc");
+        AddButton("Применить к паяльной маске", () => Commit(CalibrationApplyTarget.SolderMask), "acc");
+        footerContent.Children.Add(buttons);
+        var footer = UiTheme.Footer(footerContent); Grid.SetRow(footer, 1); root.Children.Add(footer);
         Content = root;
         try { _status.Text = Describe(ExposureCalibrationPattern.Create(project.Blank, settings), settings); }
         catch (Exception error) { _status.Text = error.Message; }
 
-        void Heading(string text) => panel.Children.Add(new TextBlock { Text = text, FontSize = 18,
-            FontWeight = FontWeight.Bold, TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 6, 0, 0) });
-        void Text(string text) => panel.Children.Add(new TextBlock { Text = text, TextWrapping = TextWrapping.Wrap });
+        void Heading(string text)
+        {
+            panel = new StackPanel { Spacing = 8 };
+            var heading = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10 };
+            heading.Children.Add(new Border { Width = 26, Height = 26, CornerRadius = new CornerRadius(13), Background = UiTheme.Brush("#F1EAFE"),
+                Child = new TextBlock { Text = (++sectionNumber).ToString(), FontWeight = FontWeight.SemiBold, Foreground = UiTheme.Brush("#6418D8"),
+                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center } });
+            heading.Children.Add(new TextBlock { Text = text, FontSize = 15, FontWeight = FontWeight.SemiBold, Foreground = UiTheme.Brush("#10173A"), TextWrapping = TextWrapping.Wrap });
+            panel.Children.Add(heading);
+            sections.Children.Add(new Border { Child = panel, Classes = { "panel" }, CornerRadius = new CornerRadius(6), Padding = new Thickness(16) });
+        }
+        void Text(string text) => panel.Children.Add(UiTheme.Caption(text));
         TextBox Field(string title, string value)
         {
-            Text(title);
+            panel.Children.Add(new TextBlock { Text = title, TextWrapping = TextWrapping.Wrap, FontSize = 12.5, FontWeight = FontWeight.SemiBold });
             var box = new TextBox { Text = value };
             panel.Children.Add(box); return box;
         }
-        void AddButton(string title, Action action)
+        void AddButton(string title, Action action, string? cls = null)
         {
             var button = new Button { Content = title, Margin = new Thickness(3) };
+            if (cls is not null) button.Classes.Add(cls);
             button.Click += (_, _) => action(); buttons.Children.Add(button);
         }
     }

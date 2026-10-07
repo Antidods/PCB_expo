@@ -1,8 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Themes.Fluent;
 using Avalonia.Styling;
-using Avalonia.Controls;
 
 namespace PcbExpo.App;
 
@@ -43,11 +41,7 @@ public sealed class PcbExpoApplication : Application
     public override void Initialize()
     {
         RequestedThemeVariant = ThemeVariant.Light;
-        Styles.Add(new FluentTheme());
-        Styles.Add(new Style(selector => selector.OfType<Window>())
-        {
-            Setters = { new Setter(Window.IconProperty, AppBranding.Icon) }
-        });
+        UiTheme.Apply(this);
     }
 
     public override void OnFrameworkInitializationCompleted()

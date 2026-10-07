@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Avalonia.Media.Imaging;
 
 namespace PcbExpo.App;
 
@@ -11,9 +12,12 @@ public sealed class AboutWindow : Window
         Title = "О программе PCB Expo";
         Width = 640; Height = 540; MinWidth = 500; MinHeight = 420;
         WindowStartupLocation = WindowStartupLocation.CenterOwner;
+        UiTheme.FitToScreen(this);
         var panel = new StackPanel { Margin = new Avalonia.Thickness(24), Spacing = 14 };
-        panel.Children.Add(new Image { Source = AppBranding.Logo, Height = 100, Stretch = Stretch.Uniform });
-        panel.Children.Add(new TextBlock { Text = $"PCB Expo {AppVersion.Current}", FontSize = 22, FontWeight = FontWeight.Bold });
+        var logo = new Image { Source = AppBranding.Logo, Height = 56, Stretch = Stretch.Uniform };
+        RenderOptions.SetBitmapInterpolationMode(logo, BitmapInterpolationMode.HighQuality);
+        panel.Children.Add(logo);
+        panel.Children.Add(new TextBlock { Text = $"PCB Expo {AppVersion.Current}", FontSize = 18, FontWeight = FontWeight.SemiBold, Foreground = UiTheme.Brush("#10173A") });
         panel.Children.Add(new TextBlock
         {
             Text = "Подготовка LCD-засветки печатных плат и раскладки для CNC. Предварительная версия.",
@@ -48,13 +52,18 @@ public sealed class AboutWindow : Window
                     }
                 }
             };
+            UiTheme.FitToScreen(window);
             await window.ShowDialog(this);
         };
-        panel.Children.Add(license);
+
         panel.Children.Add(new TextBlock { Text = "Сведения о сторонних библиотеках: THIRD_PARTY_NOTICES.md и каталог licenses в пакете приложения.", TextWrapping = TextWrapping.Wrap });
         var close = new Button { Content = "Закрыть", HorizontalAlignment = HorizontalAlignment.Right };
         close.Click += (_, _) => Close();
-        panel.Children.Add(close);
-        Content = new ScrollViewer { Content = panel };
+        var root = new Grid { RowDefinitions = new RowDefinitions("*,Auto") };
+        root.Children.Add(new Border { Classes = { "panel" }, Child = new ScrollViewer { Content = panel } });
+        var buttons = new StackPanel { Orientation = Orientation.Horizontal, Spacing = 10, HorizontalAlignment = HorizontalAlignment.Right };
+        buttons.Children.Add(license); buttons.Children.Add(close);
+        var footer = UiTheme.Footer(buttons); Grid.SetRow(footer, 1); root.Children.Add(footer);
+        Content = root;
     }
 }

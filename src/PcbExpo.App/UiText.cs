@@ -15,6 +15,7 @@ internal enum AlignmentCommand { Center, Left, Right, Top, Bottom }
 
 internal static class UiText
 {
+    public const string OutlineWarning = "ВНИМАНИЕ: контур платы отсутствует; габариты оценены по artwork.";
     public static string SafeFileName(string value) => new(value.Select(c =>
         Path.GetInvalidFileNameChars().Contains(c) ? '_' : c).ToArray());
 
@@ -74,32 +75,57 @@ internal static class UiText
     public static string Summary(PrinterInfo printer, ProjectModel project, GerberPackage? package,
         int boardCount, IReadOnlyList<RectMm> positions)
     {
+        var parts = SummaryParts(printer, project, package, boardCount, positions);
+        string Fields(SummaryGroup group) => string.Concat(group.Fields.Select(f => $"{f.Label}: {f.Value}\n"));
+        return Fields(parts.Groups[0]) + string.Concat(parts.Warnings.Select(w => w + "\n")) +
+            string.Concat(parts.Groups.Skip(1).Select(Fields)) + parts.Footnote;
+    }
+
+    public static ExportSummary SummaryParts(PrinterInfo printer, ProjectModel project, GerberPackage? package,
+        int boardCount, IReadOnlyList<RectMm> positions)
+    {
         var board = package?.BoardBoundsMm;
-        var pitchWarning = Math.Abs(printer.PixelPitchXmm - printer.PixelPitchYmm) /
-            Math.Max(printer.PixelPitchXmm, printer.PixelPitchYmm) > 0.05
-            ? "ВНИМАНИЕ: шаг пикселя X/Y различается. Проверьте масштаб калибровкой на LCD.\n"
-            : "";
-        var outlineWarning = package?.OutlineFallback == true
-            ? "ВНИМАНИЕ: контур платы отсутствует; габариты оценены по artwork.\n"
-            : "";
-        return $"Формат: {printer.Format}\nРазрешение: {printer.ResolutionX} × {printer.ResolutionY} px\n" +
-            $"Поле LCD: {Number(printer.DisplayWidthMm)} × {Number(printer.DisplayHeightMm)} мм\n" +
-            $"Шаг пикселя: X {printer.PixelPitchXmm:F6}, Y {printer.PixelPitchYmm:F6} мм\n" +
-            $"Шаблон: {printer.TemplatePath}\n{pitchWarning}{outlineWarning}" +
-            $"Плата: {(board is null ? "не загружена" : $"{Number(board.Value.Width)} × {Number(board.Value.Height)} мм")}\n" +
-            $"Заготовка: {Number(project.Blank.WidthMm)} × {Number(project.Blank.HeightMm)} мм\n" +
-            $"Режим: {Exposure(project.Mode)}\nПлат: {boardCount}\n" +
-            $"Плата X/Y: {Number(project.PcbPositionMm.X)} / {Number(project.PcbPositionMm.Y)} мм\n" +
-            $"Позиции на заготовке: {string.Join("; ", positions.Select(p => $"({Number(p.X)}, {Number(p.Y)})"))}\n" +
-            $"Зеркалирование X/Y: {YesNo(project.Mode != ExposureMode.ExposureCalibration && project.CurrentTransform.MirrorX)} / {YesNo(project.Mode != ExposureMode.ExposureCalibration && project.CurrentTransform.MirrorY)}\n" +
-            $"Инверсия: {YesNo(project.IsStencil || project.CurrentTransform.Invert)}\n" +
-            $"Экспозиция: {Number(project.CurrentExposureSeconds)} с\n" +
-            (project.Mode == ExposureMode.ExposureCalibration ?
-                $"Компенсации столбцов: {string.Join("; ", project.ProcessCalibration.CompensationsMm.Select(Number))} мм\n" :
-                $"Компенсация: {Number(project.CurrentCompensationMm)} мм\n") +
-            $"PWM: {project.Exposure.LightPwm?.ToString() ?? "из шаблона"}\n" +
-            "Физический переворот Bottom: относительно вертикальной оси центра заготовки\n" +
-            $"Сглаживание: {YesNo(project.Mode != ExposureMode.ExposureCalibration && project.AntiAliasing)}\n" +
-            "Белое на preview означает, что LCD пропускает UV.";
+        var warnings = new List<string>();
+        if (Math.Abs(printer.PixelPitchXmm - printer.PixelPitchYmm) /
+            Math.Max(printer.PixelPitchXmm, printer.PixelPitchYmm) > 0.05)
+            warnings.Add("ВНИМАНИЕ: шаг пикселя X/Y различается. Проверьте масштаб калибровкой на LCD.");
+        if (package?.OutlineFallback == true)
+            warnings.Add(OutlineWarning);
+        return new ExportSummary(warnings,
+        [
+            new("Принтер и шаблон",
+            [
+                new("Формат", printer.Format),
+                new("Разрешение", $"{printer.ResolutionX} × {printer.ResolutionY} px"),
+                new("Поле LCD", $"{Number(printer.DisplayWidthMm)} × {Number(printer.DisplayHeightMm)} мм"),
+                new("Шаг пикселя", $"X {printer.PixelPitchXmm:F6}, Y {printer.PixelPitchYmm:F6} мм"),
+                new("Шаблон", printer.TemplatePath)
+            ]),
+            new("Плата и заготовка",
+            [
+                new("Плата", board is null ? "не загружена" : $"{Number(board.Value.Width)} × {Number(board.Value.Height)} мм"),
+                new("Заготовка", $"{Number(project.Blank.WidthMm)} × {Number(project.Blank.HeightMm)} мм"),
+                new("Режим", Exposure(project.Mode)),
+                new("Плат", boardCount.ToString()),
+                new("Плата X/Y", $"{Number(project.PcbPositionMm.X)} / {Number(project.PcbPositionMm.Y)} мм"),
+                new("Позиции на заготовке", string.Join("; ", positions.Select(p => $"({Number(p.X)}, {Number(p.Y)})")))
+            ]),
+            new("Экспозиция",
+            [
+                new("Зеркалирование X/Y", $"{YesNo(project.Mode != ExposureMode.ExposureCalibration && project.CurrentTransform.MirrorX)} / {YesNo(project.Mode != ExposureMode.ExposureCalibration && project.CurrentTransform.MirrorY)}"),
+                new("Инверсия", YesNo(project.IsStencil || project.CurrentTransform.Invert)),
+                new("Экспозиция", $"{Number(project.CurrentExposureSeconds)} с"),
+                project.Mode == ExposureMode.ExposureCalibration
+                    ? new("Компенсации столбцов", $"{string.Join("; ", project.ProcessCalibration.CompensationsMm.Select(Number))} мм")
+                    : new("Компенсация", $"{Number(project.CurrentCompensationMm)} мм"),
+                new("PWM", project.Exposure.LightPwm?.ToString() ?? "из шаблона"),
+                new("Физический переворот Bottom", "относительно вертикальной оси центра заготовки"),
+                new("Сглаживание", YesNo(project.Mode != ExposureMode.ExposureCalibration && project.AntiAliasing))
+            ])
+        ], "Белое на preview означает, что LCD пропускает UV.");
     }
 }
+
+internal sealed record SummaryField(string Label, string Value);
+internal sealed record SummaryGroup(string Title, IReadOnlyList<SummaryField> Fields);
+internal sealed record ExportSummary(IReadOnlyList<string> Warnings, IReadOnlyList<SummaryGroup> Groups, string Footnote);

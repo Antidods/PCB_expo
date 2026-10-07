@@ -11,7 +11,7 @@ internal static class AppBranding
 
     private static Bitmap LoadLogo()
     {
-        using var stream = AssetLoader.Open(new Uri("avares://PcbExpo.App/Assets/logo.png"));
+        using var stream = AssetLoader.Open(new Uri("avares://PcbExpo.App/Assets/logo-ui.png"));
         return new Bitmap(stream);
     }
 

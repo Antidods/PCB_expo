@@ -55,7 +55,7 @@ public sealed class PreviewControl : Control
         base.Render(context);
         var viewport = new Rect(Bounds.Size);
         using var clip = context.PushClip(viewport);
-        context.FillRectangle(Brushes.WhiteSmoke, viewport);
+        context.FillRectangle(UiTheme.Brush("#D9DDE4"), viewport);
         if (_bitmap is null || _printer is null || _project is null) return;
         var area = ViewRect();
         context.DrawImage(_bitmap, area);
